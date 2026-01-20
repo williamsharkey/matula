@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matula Numbers Explorer</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #00d9ff; margin-bottom: 5px; }
+        .subtitle { color: #888; margin-bottom: 20px; }
+        .container { display: flex; gap: 20px; flex-wrap: wrap; }
+        .panel {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 15px;
+            min-width: 300px;
+        }
+        .panel h2 { color: #00d9ff; margin-top: 0; font-size: 1.1em; }
+        input[type="number"] {
+            background: #0f3460;
+            border: 1px solid #00d9ff;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100px;
+        }
+        button {
+            background: #00d9ff;
+            border: none;
+            color: #1a1a2e;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover { background: #00ffff; }
+        button.active { background: #ff6b6b; color: white; }
+        .canvas-container {
+            background: #0f0f23;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        canvas { display: block; }
+        .info { margin-top: 10px; font-size: 0.9em; }
+        .info span { color: #00d9ff; }
+        .tree-text {
+            font-family: monospace;
+            background: #0f3460;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .grid-item {
+            background: #0f3460;
+            padding: 5px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .grid-item:hover { background: #1a5490; }
+        .grid-item.selected { background: #00d9ff; color: #1a1a2e; }
+        .matrix {
+            font-family: monospace;
+            font-size: 14px;
+            background: #0f3460;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+        .matrix-row { display: flex; }
+        .matrix-cell {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .matrix-cell.one { color: #00d9ff; font-weight: bold; }
+        .matrix-cell.zero { color: #444; }
+        .legend { font-size: 0.85em; color: #888; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Matula Numbers: Trees ↔ Integers ↔ Graphs</h1>
+    <p class="subtitle">Exploring the bijection between positive integers and rooted trees, and operations that derive graphs from trees.</p>
+
+    <div class="container">
+        <div class="panel" style="flex: 1;">
+            <h2>Integer Input</h2>
+            <input type="number" id="matula-input" value="30" min="1" max="10000">
+            <button onclick="updateFromInput()">Visualize</button>
+
+            <div class="info">
+                <div>Prime factorization: <span id="factorization"></span></div>
+                <div>Tree size: <span id="tree-size"></span> nodes</div>
+                <div>Tree depth: <span id="tree-depth"></span></div>
+                <div>Leaves: <span id="tree-leaves"></span></div>
+            </div>
+
+            <div class="tree-text" id="tree-text"></div>
+
+            <h2 style="margin-top: 20px;">Quick Select (1-64)</h2>
+            <div class="grid" id="quick-grid"></div>
+        </div>
+
+        <div class="panel" style="flex: 2;">
+            <h2>Tree Visualization</h2>
+            <div class="canvas-container">
+                <canvas id="tree-canvas" width="500" height="300"></canvas>
+            </div>
+
+            <h2 style="margin-top: 20px;">Graph Operations</h2>
+            <div>
+                <button id="btn-base" class="active" onclick="setOperation('base')">Base Tree</button>
+                <button id="btn-L" onclick="setOperation('L')">L: Connect Leaves</button>
+                <button id="btn-S" onclick="setOperation('S')">S: Connect Siblings</button>
+                <button id="btn-D" onclick="setOperation('D')">D: Same Degree</button>
+                <button id="btn-depth" onclick="setOperation('depth')">Same Depth</button>
+            </div>
+            <div class="canvas-container">
+                <canvas id="graph-canvas" width="500" height="300"></canvas>
+            </div>
+            <div class="info">
+                <div>Graph edges: <span id="graph-edges"></span></div>
+                <div>Upper triangle encoding: <span id="upper-tri"></span></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Adjacency Matrix</h2>
+            <div class="matrix" id="adjacency-matrix"></div>
+            <div class="legend">
+                <p>The upper triangle encodes the graph uniquely (for undirected graphs).</p>
+                <p>Your idea: find a way to canonically fill this triangle so each graph topology has exactly one representation.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Prime utilities
+        function isPrime(n) {
+            if (n < 2) return false;
+            if (n === 2) return true;
+            if (n % 2 === 0) return false;
+            for (let i = 3; i * i <= n; i += 2) {
+                if (n % i === 0) return false;
+            }
+            return true;
+        }
+
+        const primeCache = [0, 2];
+        function nthPrime(n) {
+            while (primeCache.length <= n) {
+                let candidate = primeCache[primeCache.length - 1] + 1;
+                while (!isPrime(candidate)) candidate++;
+                primeCache.push(candidate);
+            }
+            return primeCache[n];
+        }
+
+        function primeIndex(p) {
+            let count = 0;
+            for (let i = 2; i <= p; i++) {
+                if (isPrime(i)) count++;
+            }
+            return count;
+        }
+
+        function primeFactorization(n) {
+            if (n === 1) return [];
+            const factors = [];
+            let d = 2;
+            while (d * d <= n) {
+                while (n % d === 0) {
+                    factors.push(d);
+                    n = Math.floor(n / d);
+                }
+                d++;
+            }
+            if (n > 1) factors.push(n);
+            return factors;
+        }
+
+        // Tree structure
+        class Tree {
+            constructor(children = []) {
+                this.children = children;
+                this._matula = null;
+            }
+
+            matula() {
+                if (this._matula !== null) return this._matula;
+                if (this.children.length === 0) {
+                    this._matula = 1;
+                } else {
+                    let result = 1;
+                    for (const child of this.children) {
+                        result *= nthPrime(child.matula());
+                    }
+                    this._matula = result;
+                }
+                return this._matula;
+            }
+
+            size() {
+                return 1 + this.children.reduce((sum, c) => sum + c.size(), 0);
+            }
+
+            depth() {
+                if (this.children.length === 0) return 0;
+                return 1 + Math.max(...this.children.map(c => c.depth()));
+            }
+
+            leaves() {
+                if (this.children.length === 0) return 1;
+                return this.children.reduce((sum, c) => sum + c.leaves(), 0);
+            }
+
+            toString() {
+                if (this.children.length === 0) return 'o';
+                return '(' + this.children.map(c => c.toString()).join(' ') + ')';
+            }
+        }
+
+        const treeCache = {};
+        function integerToTree(n) {
+            if (treeCache[n]) return treeCache[n];
+            if (n === 1) {
+                treeCache[n] = new Tree([]);
+                return treeCache[n];
+            }
+            const factors = primeFactorization(n);
+            const children = factors.map(p => integerToTree(primeIndex(p)));
+            treeCache[n] = new Tree(children);
+            return treeCache[n];
+        }
+
+        // Expand tree to nodes with positions
+        function expandTree(tree) {
+            let idx = 0;
+            const nodes = [];
+
+            function expand(t, depth, parent) {
+                const node = {
+                    idx: idx++,
+                    depth,
+                    parent,
+                    children: [],
+                    isLeaf: t.children.length === 0
+                };
+                nodes.push(node);
+                for (const child of t.children) {
+                    const childNode = expand(child, depth + 1, node);
+                    node.children.push(childNode);
+                }
+                return node;
+            }
+
+            const root = expand(tree, 0, null);
+            return { nodes, root };
+        }
+
+        // Graph operations
+        function createGraph(nodes) {
+            const n = nodes.length;
+            const edges = new Set();
+            return {
+                n,
+                edges,
+                addEdge(u, v) {
+                    if (u !== v) {
+                        edges.add(Math.min(u, v) + ',' + Math.max(u, v));
+                    }
+                },
+                hasEdge(u, v) {
+                    return edges.has(Math.min(u, v) + ',' + Math.max(u, v));
+                },
+                edgeList() {
+                    return Array.from(edges).map(e => e.split(',').map(Number));
+                }
+            };
+        }
+
+        function baseGraph(nodes) {
+            const g = createGraph(nodes);
+            for (const node of nodes) {
+                for (const child of node.children) {
+                    g.addEdge(node.idx, child.idx);
+                }
+            }
+            return g;
+        }
+
+        function operationL(nodes) {
+            const g = baseGraph(nodes);
+            const leaves = nodes.filter(n => n.isLeaf).map(n => n.idx);
+            for (let i = 0; i < leaves.length; i++) {
+                for (let j = i + 1; j < leaves.length; j++) {
+                    g.addEdge(leaves[i], leaves[j]);
+                }
+            }
+            return g;
+        }
+
+        function operationS(nodes) {
+            const g = baseGraph(nodes);
+            for (const node of nodes) {
+                const childIdx = node.children.map(c => c.idx);
+                for (let i = 0; i < childIdx.length; i++) {
+                    for (let j = i + 1; j < childIdx.length; j++) {
+                        g.addEdge(childIdx[i], childIdx[j]);
+                    }
+                }
+            }
+            return g;
+        }
+
+        function operationD(nodes) {
+            const g = baseGraph(nodes);
+            const byDegree = {};
+            for (const node of nodes) {
+                const deg = node.children.length + (node.parent ? 1 : 0);
+                if (!byDegree[deg]) byDegree[deg] = [];
+                byDegree[deg].push(node.idx);
+            }
+            for (const indices of Object.values(byDegree)) {
+                for (let i = 0; i < indices.length; i++) {
+                    for (let j = i + 1; j < indices.length; j++) {
+                        g.addEdge(indices[i], indices[j]);
+                    }
+                }
+            }
+            return g;
+        }
+
+        function operationDepth(nodes) {
+            const g = baseGraph(nodes);
+            const byDepth = {};
+            for (const node of nodes) {
+                if (!byDepth[node.depth]) byDepth[node.depth] = [];
+                byDepth[node.depth].push(node.idx);
+            }
+            for (const indices of Object.values(byDepth)) {
+                for (let i = 0; i < indices.length; i++) {
+                    for (let j = i + 1; j < indices.length; j++) {
+                        g.addEdge(indices[i], indices[j]);
+                    }
+                }
+            }
+            return g;
+        }
+
+        // Visualization
+        let currentMatula = 30;
+        let currentOperation = 'base';
+        let currentNodes = null;
+
+        function layoutTree(nodes, root, width, height) {
+            const maxDepth = Math.max(...nodes.map(n => n.depth));
+            const levelHeight = height / (maxDepth + 2);
+
+            // Count nodes at each level
+            const levels = {};
+            for (const node of nodes) {
+                if (!levels[node.depth]) levels[node.depth] = [];
+                levels[node.depth].push(node);
+            }
+
+            // Position nodes
+            for (const [depth, levelNodes] of Object.entries(levels)) {
+                const d = parseInt(depth);
+                const y = 30 + d * levelHeight;
+                const spacing = width / (levelNodes.length + 1);
+                levelNodes.forEach((node, i) => {
+                    node.x = spacing * (i + 1);
+                    node.y = y;
+                });
+            }
+
+            // Adjust x positions to center children under parents
+            for (let d = maxDepth - 1; d >= 0; d--) {
+                for (const node of (levels[d] || [])) {
+                    if (node.children.length > 0) {
+                        const childX = node.children.reduce((sum, c) => sum + c.x, 0) / node.children.length;
+                        // Don't move too far from current position
+                        node.x = node.x * 0.3 + childX * 0.7;
+                    }
+                }
+            }
+        }
+
+        function drawTree(canvas, nodes) {
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            layoutTree(nodes, nodes[0], w, h);
+
+            // Draw edges
+            ctx.strokeStyle = '#00d9ff';
+            ctx.lineWidth = 2;
+            for (const node of nodes) {
+                for (const child of node.children) {
+                    ctx.beginPath();
+                    ctx.moveTo(node.x, node.y);
+                    ctx.lineTo(child.x, child.y);
+                    ctx.stroke();
+                }
+            }
+
+            // Draw nodes
+            for (const node of nodes) {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 12, 0, Math.PI * 2);
+                ctx.fillStyle = node.isLeaf ? '#ff6b6b' : '#00d9ff';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.idx, node.x, node.y);
+            }
+        }
+
+        function drawGraph(canvas, nodes, graph) {
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Layout in a circle
+            const cx = w / 2;
+            const cy = h / 2;
+            const r = Math.min(w, h) / 2 - 40;
+
+            for (let i = 0; i < nodes.length; i++) {
+                const angle = (2 * Math.PI * i / nodes.length) - Math.PI / 2;
+                nodes[i].gx = cx + r * Math.cos(angle);
+                nodes[i].gy = cy + r * Math.sin(angle);
+            }
+
+            // Draw edges
+            const edges = graph.edgeList();
+            const treeEdges = new Set();
+            for (const node of nodes) {
+                for (const child of node.children) {
+                    treeEdges.add(Math.min(node.idx, child.idx) + ',' + Math.max(node.idx, child.idx));
+                }
+            }
+
+            for (const [u, v] of edges) {
+                const key = u + ',' + v;
+                ctx.beginPath();
+                ctx.moveTo(nodes[u].gx, nodes[u].gy);
+                ctx.lineTo(nodes[v].gx, nodes[v].gy);
+                if (treeEdges.has(key)) {
+                    ctx.strokeStyle = '#00d9ff';
+                    ctx.lineWidth = 3;
+                } else {
+                    ctx.strokeStyle = '#ff6b6b';
+                    ctx.lineWidth = 2;
+                }
+                ctx.stroke();
+            }
+
+            // Draw nodes
+            for (const node of nodes) {
+                ctx.beginPath();
+                ctx.arc(node.gx, node.gy, 15, 0, Math.PI * 2);
+                ctx.fillStyle = node.isLeaf ? '#ff6b6b' : '#00d9ff';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 12px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.idx, node.gx, node.gy);
+            }
+        }
+
+        function renderMatrix(nodes, graph) {
+            const n = nodes.length;
+            let html = '';
+            for (let i = 0; i < n; i++) {
+                html += '<div class="matrix-row">';
+                for (let j = 0; j < n; j++) {
+                    const val = (i === j) ? '·' : (graph.hasEdge(i, j) ? '1' : '0');
+                    const cls = val === '1' ? 'one' : 'zero';
+                    html += `<div class="matrix-cell ${cls}">${val}</div>`;
+                }
+                html += '</div>';
+            }
+            document.getElementById('adjacency-matrix').innerHTML = html;
+        }
+
+        function upperTriangleBits(nodes, graph) {
+            let bits = '';
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    bits += graph.hasEdge(i, j) ? '1' : '0';
+                }
+            }
+            return bits || '(empty)';
+        }
+
+        function update() {
+            const tree = integerToTree(currentMatula);
+            const { nodes } = expandTree(tree);
+            currentNodes = nodes;
+
+            // Update info
+            document.getElementById('factorization').textContent =
+                currentMatula === 1 ? '1' : primeFactorization(currentMatula).join(' × ');
+            document.getElementById('tree-size').textContent = tree.size();
+            document.getElementById('tree-depth').textContent = tree.depth();
+            document.getElementById('tree-leaves').textContent = tree.leaves();
+            document.getElementById('tree-text').textContent = tree.toString();
+
+            // Draw tree
+            drawTree(document.getElementById('tree-canvas'), nodes);
+
+            // Get graph based on operation
+            let graph;
+            switch (currentOperation) {
+                case 'L': graph = operationL(nodes); break;
+                case 'S': graph = operationS(nodes); break;
+                case 'D': graph = operationD(nodes); break;
+                case 'depth': graph = operationDepth(nodes); break;
+                default: graph = baseGraph(nodes);
+            }
+
+            // Draw graph
+            drawGraph(document.getElementById('graph-canvas'), nodes, graph);
+
+            // Update graph info
+            document.getElementById('graph-edges').textContent = graph.edges.size;
+            document.getElementById('upper-tri').textContent = upperTriangleBits(nodes, graph);
+
+            // Render matrix
+            renderMatrix(nodes, graph);
+
+            // Update grid selection
+            document.querySelectorAll('.grid-item').forEach(el => {
+                el.classList.toggle('selected', parseInt(el.dataset.n) === currentMatula);
+            });
+        }
+
+        function updateFromInput() {
+            const val = parseInt(document.getElementById('matula-input').value);
+            if (val >= 1 && val <= 10000) {
+                currentMatula = val;
+                update();
+            }
+        }
+
+        function setOperation(op) {
+            currentOperation = op;
+            document.querySelectorAll('button[id^="btn-"]').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + op).classList.add('active');
+            update();
+        }
+
+        // Initialize
+        function init() {
+            // Create quick select grid
+            const grid = document.getElementById('quick-grid');
+            for (let n = 1; n <= 64; n++) {
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.dataset.n = n;
+                item.textContent = n;
+                item.onclick = () => {
+                    currentMatula = n;
+                    document.getElementById('matula-input').value = n;
+                    update();
+                };
+                grid.appendChild(item);
+            }
+
+            update();
+        }
+
+        init();
+    </script>
+</body>
+</html>
