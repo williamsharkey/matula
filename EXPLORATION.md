@@ -237,6 +237,61 @@ Could there be a "Matula-like" meaning to the prime factors of graph encodings?
 
 ---
 
+---
+
+## DISCOVERY: The Cycle Theorem
+
+### Super-Primes (Chain Numbers)
+
+The sequence **1, 2, 3, 5, 11, 31, 127, 709, 5381, ...** (OEIS A007097) are the
+"super-primes" - each is the prime indexed by the previous:
+
+    1 (base)
+    2 = p_1
+    3 = p_2 = p_{p_1}
+    5 = p_3 = p_{p_2}
+    11 = p_5 = p_{p_3}
+    ...
+
+These correspond exactly to **chain trees** (pure paths from root to single leaf).
+
+### The Cycle Theorem
+
+**Theorem**: Matula number n produces a cycle C_k via operation L (connect leaves)
+if and only if:
+
+    n = p_a × p_b
+
+where a and b are both **super-primes**.
+
+The cycle length is: k = depth(tree(a)) + depth(tree(b)) + 1
+
+### Proof Sketch
+
+1. Operation L connects all leaves of a tree
+2. Adding one edge to a tree creates exactly one cycle
+3. This cycle includes all vertices iff every vertex lies on the path between the two leaves
+4. That happens iff the tree has exactly 2 leaves
+5. Tree(n) has 2 leaves iff each prime factor contributes a 1-leaf subtree
+6. Tree(i) has 1 leaf iff i is a super-prime (chain tree)
+7. Therefore: n = p_a × p_b with a, b super-primes ⟺ tree(n) + L = cycle
+
+### Examples
+
+| n | Factorization | Tree | Result |
+|---|---------------|------|--------|
+| 4 | 2×2 = p_1×p_1 | (o o) | C_3 |
+| 6 | 2×3 = p_1×p_2 | (o (o)) | C_4 |
+| 9 | 3×3 = p_2×p_2 | ((o)(o)) | C_5 |
+| 15 | 3×5 = p_2×p_3 | ((o)((o))) | C_6 |
+| 121 | 11×11 = p_5×p_5 | ((((o)))(((o)))) | C_9 |
+
+### Cycle-Producing Matula Numbers
+
+The sequence: 4, 6, 9, 10, 15, 22, 25, 33, 55, 62, 93, 121, 155, ...
+
+---
+
 ## Next Steps
 
 1. Implement Matula number computation (both directions)
@@ -247,3 +302,45 @@ Could there be a "Matula-like" meaning to the prime factors of graph encodings?
 6. Search for operations that give good coverage of graph space
 7. Explore symmetric functions over all matrix representations
 8. Investigate prime factorization of upper-triangle encodings
+9. **Find analogous theorems for other graph families (paths, complete bipartite, etc.)**
+
+---
+
+## DISCOVERY: The Bipartite Theorem
+
+**Theorem**: Tree(n) + Operation L is bipartite if and only if no two leaves
+share the same depth parity.
+
+**Corollary**: With k ≥ 3 leaves, +L always creates odd cycles (by pigeonhole,
+at least two leaves share parity).
+
+The bipartite +L graphs come from:
+1. Single-leaf trees (super-primes: 1, 2, 3, 5, 11, 31, ...) → trivial
+2. Two-leaf trees with opposite parities → these give the CYCLES (connection to Cycle Theorem!)
+
+---
+
+## DISCOVERY: Complete Graph Generators
+
+**Theorem**: 2^k + L = K_{k+1}
+
+Powers of 2 are star trees (root with k leaves all at depth 1). Connecting all
+leaves creates a clique, so the result is the complete graph.
+
+Other complete graph generators via operation D:
+- 3+D = K_3 (chain wraps into triangle)
+- 7+D = K_4
+- 19+D = K_5
+- 53+D = K_6
+
+---
+
+## Tree Size Distribution
+
+For integers up to 1000:
+- Tree sizes follow roughly bell-shaped distribution
+- Peak at size 10-11
+- Very few small trees (size 1-4)
+- Tree size grows roughly like log(n) but with structure
+
+This suggests a central limit theorem for tree sizes under the Matula encoding.
