@@ -182,6 +182,61 @@ This suggests viewing graph space as:
 
 ---
 
+---
+
+## The Product Invariant Idea
+
+### The Observation
+
+A graph on n vertices has n! possible adjacency matrix representations (one per
+vertex labeling). Each matrix's upper triangle encodes as an integer.
+
+**Insight**: If we take a symmetric function over all n! integers, we get a
+graph invariant - same value for isomorphic graphs regardless of labeling.
+
+### Product Approach
+
+Let M_σ be the upper-triangle integer for permutation σ. Define:
+
+    P(G) = ∏_{σ ∈ S_n} M_σ
+
+This is permutation-invariant by construction. Issues:
+- Astronomically large (n! factors)
+- Collision risk (different graphs, same product)
+
+### Alternatives
+
+1. **Minimum (canonical form)**: min_{σ} M_σ
+   - This is what nauty/bliss compute
+   - Unique per isomorphism class
+   - Hard to compute (related to GI problem)
+
+2. **Sum**: ∑_{σ} M_σ
+   - Easier to compute than min
+   - Collision risk
+
+3. **Multiset**: {M_σ : σ ∈ S_n}
+   - Complete invariant (no collisions)
+   - Expensive to store/compare
+
+4. **GCD of all M_σ**: gcd{M_σ}
+   - Much smaller than product
+   - Might reveal structure
+
+### Prime Factorization Connection
+
+Each upper-triangle encoding M is an integer. What if we factor it?
+
+    M = p_1^{a_1} · p_2^{a_2} · ... · p_k^{a_k}
+
+The prime structure might reveal graph structure. Consider:
+- Edge at position i contributes to the 2^i term
+- Different edge patterns → different factorizations
+
+Could there be a "Matula-like" meaning to the prime factors of graph encodings?
+
+---
+
 ## Next Steps
 
 1. Implement Matula number computation (both directions)
@@ -190,3 +245,5 @@ This suggests viewing graph space as:
 4. Compute which graphs arise from which (tree, operation) pairs
 5. Look for patterns in graph properties vs Matula number
 6. Search for operations that give good coverage of graph space
+7. Explore symmetric functions over all matrix representations
+8. Investigate prime factorization of upper-triangle encodings

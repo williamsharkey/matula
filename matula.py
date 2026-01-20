@@ -374,6 +374,80 @@ def analyze_operations(n: int):
     print()
 
 
+def all_permutations(n: int):
+    """Generate all permutations of [0, 1, ..., n-1]."""
+    if n == 0:
+        yield []
+        return
+    if n == 1:
+        yield [0]
+        return
+    for perm in all_permutations(n - 1):
+        for i in range(n):
+            yield perm[:i] + [n - 1] + perm[i:]
+
+
+def permute_graph(g: Graph, perm: List[int]) -> Graph:
+    """Return a new graph with vertices permuted according to perm."""
+    new_g = Graph(g.n)
+    for (u, v) in g.edges:
+        new_g.add_edge(perm[u], perm[v])
+    return new_g
+
+
+def graph_to_int(g: Graph) -> int:
+    """Encode upper triangle as an integer."""
+    return g.upper_triangle_bits()
+
+
+def all_graph_encodings(g: Graph) -> List[int]:
+    """Get all possible integer encodings of graph g (one per vertex permutation)."""
+    encodings = []
+    for perm in all_permutations(g.n):
+        pg = permute_graph(g, perm)
+        encodings.append(graph_to_int(pg))
+    return encodings
+
+
+def canonical_encoding(g: Graph) -> int:
+    """Return the minimum encoding (canonical form)."""
+    return min(all_graph_encodings(g))
+
+
+def analyze_graph_encodings(g: Graph, name: str = ""):
+    """Analyze all encodings of a graph."""
+    encodings = all_graph_encodings(g)
+    unique = sorted(set(encodings))
+
+    print(f"Graph {name}: {g.n} vertices, {g.n_edges()} edges")
+    print(f"  Total permutations: {len(encodings)}")
+    print(f"  Unique encodings: {len(unique)}")
+    print(f"  Canonical (min): {min(unique)} = {bin(min(unique))}")
+    print(f"  Max encoding: {max(unique)} = {bin(max(unique))}")
+
+    # Prime factorization of canonical
+    canon = min(unique)
+    if canon > 1:
+        factors = prime_factorization(canon)
+        print(f"  Canonical prime factors: {factors}")
+
+    # GCD of all encodings
+    from math import gcd
+    from functools import reduce
+    g_gcd = reduce(gcd, [e for e in unique if e > 0], 0)
+    print(f"  GCD of all encodings: {g_gcd}")
+
+    # Product (just show it exists, don't compute for large)
+    if len(unique) <= 10:
+        product = 1
+        for e in unique:
+            if e > 0:
+                product *= e
+        print(f"  Product of unique: {product}")
+
+    print()
+
+
 if __name__ == "__main__":
     print("=== Matula Numbers: Integer-Tree Bijection ===\n")
 
@@ -388,3 +462,12 @@ if __name__ == "__main__":
     # Analyze some specific trees with operations
     for n in [4, 6, 8, 12, 30]:
         analyze_operations(n)
+
+    print("\n" + "="*50)
+    print("=== Graph Encoding Analysis ===\n")
+
+    # Analyze encodings for small graphs from trees
+    for matula_n in [4, 6, 7, 8, 9]:
+        tree = integer_to_tree(matula_n)
+        g = operation_L(tree)
+        analyze_graph_encodings(g, f"Matula {matula_n} + L")
