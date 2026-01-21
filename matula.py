@@ -448,6 +448,105 @@ def analyze_graph_encodings(g: Graph, name: str = ""):
     print()
 
 
+# =============================================================================
+# GRAPH ENUMERATION: Bijection between graphs and integers
+# =============================================================================
+
+# OEIS A000088: number of graphs on n unlabeled vertices
+GRAPH_COUNTS = [0, 1, 2, 4, 11, 34, 156, 1044, 12346, 274668]  # n=0..9
+
+def _build_graph_tables(max_n=5):
+    """Build lookup tables for graph ↔ integer bijection."""
+    from itertools import combinations
+
+    canon_to_rank = {}  # (n, canonical) -> rank within n-vertex
+    rank_to_canon = {}  # (n, rank) -> canonical
+
+    for n in range(1, max_n + 1):
+        all_possible = [(i,j) for i in range(n) for j in range(i+1, n)]
+        seen = set()
+        canonicals = []
+
+        for r in range(len(all_possible) + 1):
+            for edge_set in combinations(all_possible, r):
+                g = Graph(n)
+                for e in edge_set:
+                    g.add_edge(*e)
+                canon = canonical_encoding(g)
+                if canon not in seen:
+                    seen.add(canon)
+                    canonicals.append(canon)
+
+        canonicals.sort()
+        for rank_within, canon in enumerate(canonicals):
+            canon_to_rank[(n, canon)] = rank_within
+            rank_to_canon[(n, rank_within)] = canon
+
+    return canon_to_rank, rank_to_canon
+
+# Lazy initialization
+_GRAPH_TABLES = None
+
+def _get_graph_tables():
+    global _GRAPH_TABLES
+    if _GRAPH_TABLES is None:
+        _GRAPH_TABLES = _build_graph_tables(5)
+    return _GRAPH_TABLES
+
+def graph_to_integer(g: Graph) -> int:
+    """
+    Map a graph to a unique positive integer.
+
+    The bijection orders graphs by (vertex_count, canonical_encoding).
+    This gives a dense, gap-free mapping: 1, 2, 3, 4, ...
+
+    Examples:
+        1 → Empty_1
+        2 → Empty_2
+        3 → K_2
+        4 → Empty_3
+        ...
+        18 → K_4
+    """
+    canon_to_rank, _ = _get_graph_tables()
+    n = g.n
+    canon = canonical_encoding(g)
+
+    # Cumulative count of graphs with fewer vertices
+    offset = sum(GRAPH_COUNTS[1:n])
+
+    # Position within n-vertex graphs (0-indexed)
+    rank_within = canon_to_rank.get((n, canon))
+    if rank_within is None:
+        raise ValueError(f"Graph with {n} vertices not in precomputed tables")
+
+    return offset + rank_within + 1
+
+def integer_to_graph_info(k: int) -> Tuple[int, int, int]:
+    """
+    Map a positive integer back to graph info: (n_vertices, canonical, rank_within_n).
+
+    To reconstruct the actual graph, decode the canonical as upper-triangle bits.
+    """
+    _, rank_to_canon = _get_graph_tables()
+
+    if k < 1:
+        raise ValueError("k must be positive")
+
+    # Find which vertex count
+    cumulative = 0
+    for n in range(1, len(GRAPH_COUNTS)):
+        if cumulative + GRAPH_COUNTS[n] >= k:
+            rank_within = k - cumulative - 1
+            canon = rank_to_canon.get((n, rank_within))
+            if canon is not None:
+                return (n, canon, rank_within)
+            raise ValueError(f"Integer {k} exceeds precomputed tables")
+        cumulative += GRAPH_COUNTS[n]
+
+    raise ValueError(f"Integer {k} exceeds precomputed tables")
+
+
 if __name__ == "__main__":
     print("=== Matula Numbers: Integer-Tree Bijection ===\n")
 

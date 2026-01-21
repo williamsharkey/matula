@@ -1,8 +1,10 @@
-# Graph Enumeration via Matula Trees
+# Graph Enumeration: Bijection Between Graphs and Integers
 
 ## The Goal
 
 Find a bijection between **unlabeled graphs** and **integers** (like Matula does for trees).
+
+**Result**: We found it! The rank bijection gives a dense mapping 1, 2, 3, ...
 
 ## Key Insights from Exploration
 
@@ -107,6 +109,68 @@ Each Matula tree has a **fiber** of graphs above it:
 
 ---
 
+## The Complete Rank Bijection
+
+Using ordering key `(vertex_count, product, canonical)`:
+
+```
+Rank | n | edges | canonical | description
+-----|---|-------|-----------|------------
+   1 | 1 |     0 |         0 | Empty_1
+   2 | 2 |     0 |         0 | Empty_2
+   3 | 2 |     1 |         1 | K_2
+   4 | 3 |     0 |         0 | Empty_3
+   5 | 3 |     1 |         1 | P_2 + isolated
+   6 | 3 |     2 |         3 | P_3
+   7 | 3 |     3 |         7 | K_3
+   8 | 4 |     0 |         0 | Empty_4
+   9 | 4 |     1 |         1 | edge + 2 isolated
+  10 | 4 |     2 |         3 | P_3 + isolated
+  11 | 4 |     2 |        12 | matching (2 edges)
+  12 | 4 |     3 |         7 | star K_{1,3}
+  13 | 4 |     3 |        11 | P_4
+  14 | 4 |     3 |        13 | triangle + isolated
+  15 | 4 |     4 |        15 | K_4 minus edge
+  16 | 4 |     4 |        30 | C_4 (4-cycle)
+  17 | 4 |     5 |        31 | K_4 minus one edge
+  18 | 4 |     6 |        63 | K_4
+```
+
+**This IS a complete bijection!** Every graph gets a unique positive integer.
+
+### Computing Rank
+
+```
+rank(G) = cumulative_count(n-1) + position_within_n_vertices
+```
+
+Where:
+- `cumulative_count(k)` = sum of A000088 values for n=1 to k
+- `position_within_n_vertices` = rank of G among n-vertex graphs by (product, canonical)
+
+### Product Invariant Details
+
+The **product invariant** P(G) = ∏(encoding^multiplicity) over all unique encodings.
+
+Key observations:
+- Empty graphs and K₂ all have product = 1 (degenerate case)
+- Products grow astronomically: 4-vertex products reach 10^40
+- Products roughly correlate with edge count
+- Product ranking ≈ inverse automorphism group size (most symmetric first)
+
+### The Separation Question
+
+Products do NOT cleanly separate by vertex count:
+- All empty graphs have product = 1
+- K₂ also has product = 1
+
+But using (n, product, canonical) as key DOES give a total order that:
+1. Groups graphs by vertex count
+2. Within n, orders by product (symmetry)
+3. Breaks ties by canonical form
+
+---
+
 ## Future Directions
 
 1. **Formula for rank(c)**: Count canonical forms less than c
@@ -114,3 +178,4 @@ Each Matula tree has a **fiber** of graphs above it:
 3. **Cycle encoding**: How to encode the "extra edges" beyond spanning tree
 4. **Prime-product encoding**: Use product of primes for edge positions
 5. **Direct graph→integer bijection**: Define new encoding avoiding upper triangle
+6. **Efficient unranking**: Given integer k, compute the k-th graph without enumeration
