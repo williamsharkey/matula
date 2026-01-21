@@ -1,6 +1,68 @@
 # Construction Bijection: Graphs ↔ Matula Trees
 
-## The Idea
+## Unified Construction: STOP as a Choice
+
+The cleanest version makes STOP an explicit choice at each step:
+
+```
+At step k, choices are:
+  0     = STOP (graph complete, has k vertices)
+  1     = ADD vertex connected to nothing
+  2     = ADD vertex connected to v₀
+  3     = ADD vertex connected to v₁
+  ...
+  2^k   = ADD vertex connected to ALL previous
+
+Number of choices at step k: 2^k + 1
+```
+
+### The Choice Tree
+
+Every graph is a path through the choice tree:
+
+```
+         [v₀]
+          │
+    ┌─────┼─────┐
+    │     │     │
+  STOP  +v₁:∅  +v₁:{0}
+   │      │      │
+  n=1   ┌─┴─┐  ┌─┴─┐
+ int=0  │...│  │...│
+       STOP    STOP
+       n=2     n=2
+    Empty₂     K₂
+     int=1    int=2
+```
+
+### Mixed-Radix Encoding
+
+```
+integer = c₁ + 3·c₂ + 15·c₃ + 135·c₄ + ...
+
+where multiplier at step k = ∏_{j<k} (2^j + 1)
+```
+
+### Unified Ordering (All Graphs, All Sizes)
+
+| Int | n | e | Graph |
+|-----|---|---|-------|
+| 0 | 1 | 0 | • single vertex |
+| 1 | 2 | 0 | • • Empty₂ |
+| 2 | 2 | 1 | •—• K₂ |
+| 4 | 3 | 0 | • • • Empty₃ |
+| 5 | 3 | 1 | •—• • P₂+iso |
+| 8 | 3 | 2 | •—•—• P₃ |
+| 14 | 3 | 3 | △ K₃ |
+| 19 | 4 | 0 | Empty₄ |
+| ... | | | |
+| 134 | 4 | 6 | K₄ |
+
+The integers are sparse (gaps where non-canonical sequences would be), but it's a bijection across ALL graph sizes in a single unified space.
+
+---
+
+## The Idea (Original Fixed-n Version)
 
 Instead of encoding a graph's adjacency matrix, encode its **construction**:
 
