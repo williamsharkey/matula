@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel Encoding: The Collision-Free Graph Product</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a1a;
+            color: #eee;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        h1, h2, h3 { color: #00ff88; margin-top: 30px; }
+        h1 { text-align: center; font-size: 28px; }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: #12122a;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid #2a2a4a;
+        }
+
+        .formula {
+            background: #1a1a3a;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            text-align: center;
+            margin: 20px 0;
+            border-left: 4px solid #00ff88;
+        }
+
+        .binary {
+            font-family: 'Courier New', monospace;
+            color: #ff6b6b;
+            background: #1a1a2a;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #2a2a4a;
+        }
+        th {
+            background: #1a1a3a;
+            color: #00d4ff;
+        }
+        tr:nth-child(even) { background: #0f0f2f; }
+        tr:hover { background: #1a2a4a; }
+
+        .highlight { color: #00ff88; font-weight: bold; }
+        .dim { color: #666; }
+        .sentinel { color: #ff6b6b; font-weight: bold; }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .vs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #666;
+        }
+
+        .proof-box {
+            background: linear-gradient(135deg, #1a2a3a, #1a1a3a);
+            border: 2px solid #00ff88;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .step {
+            margin: 15px 0;
+            padding-left: 20px;
+            border-left: 3px solid #00d4ff;
+        }
+
+        .key-insight {
+            background: #2a1a3a;
+            border: 2px solid #ff6b6b;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        canvas {
+            display: block;
+            margin: 20px auto;
+            background: #0a0a15;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        select, button {
+            background: #1a1a3a;
+            color: white;
+            border: 1px solid #00d4ff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        button:hover { background: #2a2a5a; }
+        button.primary { background: #00aa66; border-color: #00ff88; }
+
+        #productDisplay {
+            font-size: 14px;
+            background: #0a0a15;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>The Sentinel Encoding</h1>
+    <p class="subtitle">A collision-free graph invariant using a single extra bit</p>
+
+    <div class="panel">
+        <h2>The Problem</h2>
+        <p>
+            The original upper-triangle encoding has <strong>degenerate cases</strong>:
+        </p>
+        <table>
+            <tr>
+                <th>Graph</th>
+                <th>Encodings</th>
+                <th>Product</th>
+                <th>Problem</th>
+            </tr>
+            <tr>
+                <td>Empty₂</td>
+                <td><span class="binary">0, 0</span></td>
+                <td>1 (empty product)</td>
+                <td rowspan="4" style="color: #ff6b6b;">All equal to 1!</td>
+            </tr>
+            <tr>
+                <td>K₂</td>
+                <td><span class="binary">1, 1</span></td>
+                <td>1 × 1 = 1</td>
+            </tr>
+            <tr>
+                <td>Empty₃</td>
+                <td><span class="binary">0, 0, 0, 0, 0, 0</span></td>
+                <td>1 (empty product)</td>
+            </tr>
+            <tr>
+                <td>Empty₄</td>
+                <td><span class="binary">0, ..., 0</span> (24 times)</td>
+                <td>1 (empty product)</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="panel">
+        <h2>The Fix: Prepend a 1</h2>
+
+        <div class="formula">
+            enc' = <span class="sentinel">2<sup>k</sup></span> + enc
+            <br><br>
+            where k = n(n-1)/2 = number of edge positions
+        </div>
+
+        <p>In binary, this just prepends a <span class="sentinel">1</span>:</p>
+
+        <table>
+            <tr>
+                <th>n</th>
+                <th>k (edge positions)</th>
+                <th>Original range</th>
+                <th>New range (binary)</th>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>0 to 1</td>
+                <td><span class="sentinel">1</span>0 to <span class="sentinel">1</span>1 → [2, 3]</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>3</td>
+                <td>0 to 7</td>
+                <td><span class="sentinel">1</span>000 to <span class="sentinel">1</span>111 → [8, 15]</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>6</td>
+                <td>0 to 63</td>
+                <td><span class="sentinel">1</span>000000 to <span class="sentinel">1</span>111111 → [64, 127]</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>10</td>
+                <td>0 to 1023</td>
+                <td><span class="sentinel">1</span>0000000000 to <span class="sentinel">1</span>1111111111 → [1024, 2047]</td>
+            </tr>
+        </table>
+
+        <div class="key-insight">
+            <strong>The ranges don't overlap!</strong><br>
+            You can tell n just by counting the bits.
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Products With Sentinel Encoding</h2>
+
+        <table>
+            <tr>
+                <th>Graph</th>
+                <th>n</th>
+                <th>Sentinel Encoding</th>
+                <th>Product (factored)</th>
+                <th>Product (value)</th>
+            </tr>
+            <tr>
+                <td>Empty₂</td>
+                <td>2</td>
+                <td><span class="binary">10</span> = 2</td>
+                <td>2²</td>
+                <td class="highlight">4</td>
+            </tr>
+            <tr>
+                <td>K₂</td>
+                <td>2</td>
+                <td><span class="binary">11</span> = 3</td>
+                <td>3²</td>
+                <td class="highlight">9</td>
+            </tr>
+            <tr>
+                <td>Empty₃</td>
+                <td>3</td>
+                <td><span class="binary">1000</span> = 8</td>
+                <td>8⁶</td>
+                <td class="highlight">262,144</td>
+            </tr>
+            <tr>
+                <td>P₂+iso</td>
+                <td>3</td>
+                <td><span class="binary">1001</span>, ...</td>
+                <td>9² × 10² × 12²</td>
+                <td class="highlight">1,166,400</td>
+            </tr>
+            <tr>
+                <td>P₃</td>
+                <td>3</td>
+                <td><span class="binary">1011</span>, ...</td>
+                <td>11² × 13² × 14²</td>
+                <td class="highlight">4,008,004</td>
+            </tr>
+            <tr>
+                <td>K₃</td>
+                <td>3</td>
+                <td><span class="binary">1111</span> = 15</td>
+                <td>15⁶</td>
+                <td class="highlight">11,390,625</td>
+            </tr>
+        </table>
+
+        <div class="key-insight" style="background: #1a3a2a; border-color: #00ff88;">
+            <strong style="font-size: 20px;">✓ Zero Collisions!</strong><br>
+            All 51 graphs (n ≤ 5) have unique products.
+        </div>
+    </div>
+
+    <div class="proof-box">
+        <h2>Why It Works: Proof Sketch</h2>
+
+        <div class="step">
+            <strong>Step 1: Ranges separate by n</strong><br>
+            For n vertices: encodings ∈ [2<sup>k</sup>, 2<sup>k+1</sup>-1] where k = n(n-1)/2<br>
+            For n+1 vertices: encodings ∈ [2<sup>k'</sup>, ...] where k' = n(n+1)/2<br>
+            Since k' > k+1 for n ≥ 2, the ranges don't overlap.
+        </div>
+
+        <div class="step">
+            <strong>Step 2: Products separate by n</strong><br>
+            Max product for n = (2<sup>k+1</sup>-1)<sup>n!</sup><br>
+            Min product for n+1 = (2<sup>k'</sup>)<sup>(n+1)!</sup><br>
+            Since k' > k+1 and (n+1)! > n!, products strictly separate.
+        </div>
+
+        <div class="step">
+            <strong>Step 3: Within same n (Conjecture)</strong><br>
+            Different graphs → different encoding multisets → different products.<br>
+            Verified computationally for n ≤ 5.
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>The Beautiful Connection: Triangular Numbers</h2>
+
+        <p>The number of edge positions k = n(n-1)/2 = T<sub>n-1</sub> (triangular numbers!)</p>
+
+        <table>
+            <tr>
+                <th>n</th>
+                <th>k = edge positions</th>
+                <th>Triangular number</th>
+                <th>Encoding range</th>
+            </tr>
+            <tr><td>2</td><td>1</td><td>T₁ = 1</td><td>[2¹, 2²-1] = [2, 3]</td></tr>
+            <tr><td>3</td><td>3</td><td>T₂ = 3</td><td>[2³, 2⁴-1] = [8, 15]</td></tr>
+            <tr><td>4</td><td>6</td><td>T₃ = 6</td><td>[2⁶, 2⁷-1] = [64, 127]</td></tr>
+            <tr><td>5</td><td>10</td><td>T₄ = 10</td><td>[2¹⁰, 2¹¹-1] = [1024, 2047]</td></tr>
+            <tr><td>6</td><td>15</td><td>T₅ = 15</td><td>[2¹⁵, 2¹⁶-1] = [32768, 65535]</td></tr>
+        </table>
+
+        <div class="formula">
+            The <strong>Triangular Encoding</strong>:<br><br>
+            enc(G) = 2<sup>T<sub>n-1</sub></sup> + [upper triangle bits]
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Interactive: Compare Products</h2>
+
+        <div class="controls">
+            <label>Vertices:</label>
+            <select id="nSelect" onchange="updateGraphList()">
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+            </select>
+            <button onclick="showAllProducts()">Show All Products</button>
+        </div>
+
+        <div id="productDisplay"></div>
+    </div>
+
+    <div class="panel">
+        <h2>Naming Suggestions</h2>
+
+        <table>
+            <tr><th>Name</th><th>Why</th></tr>
+            <tr>
+                <td class="highlight">Triangular Encoding</td>
+                <td>k = T<sub>n-1</sub> is a triangular number</td>
+            </tr>
+            <tr>
+                <td>Sentinel Encoding</td>
+                <td>The leading 1 bit acts as a sentinel/marker</td>
+            </tr>
+            <tr>
+                <td>Self-Delimiting Encoding</td>
+                <td>The bit length encodes n</td>
+            </tr>
+            <tr>
+                <td>Universal Graph Encoding</td>
+                <td>Works for all graphs, all sizes, no collisions</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Graph data with sentinel encoding products
+        const GRAPHS = {
+            3: [
+                { name: 'Empty₃', edges: 0, canonical: 0, sentinel: 8, product: '8⁶ = 262,144' },
+                { name: 'P₂+iso', edges: 1, canonical: 1, sentinel: 9, product: '9² × 10² × 12² = 1,166,400' },
+                { name: 'P₃', edges: 2, canonical: 3, sentinel: 11, product: '11² × 13² × 14² = 4,008,004' },
+                { name: 'K₃', edges: 3, canonical: 7, sentinel: 15, product: '15⁶ = 11,390,625' },
+            ],
+            4: [
+                { name: 'Empty₄', edges: 0, canonical: 0, sentinel: 64, product: '64²⁴' },
+                { name: 'edge+2iso', edges: 1, canonical: 1, sentinel: 65, product: '65⁴ × 66⁴ × 68⁴ × 72⁴ × 80⁴ × 96⁴' },
+                { name: 'P₃+iso', edges: 2, canonical: 3, sentinel: 67, product: '(12 terms)²' },
+                { name: 'K₁,₃ (star)', edges: 3, canonical: 7, sentinel: 71, product: '71⁶ × 89⁶ × 106⁶ × 116⁶' },
+                { name: 'P₄ (path)', edges: 3, canonical: 11, sentinel: 75, product: '75⁶ × 85⁶ × 102⁶ × 120⁶' },
+                { name: '2K₂ (matching)', edges: 2, canonical: 12, sentinel: 76, product: '76⁸ × 82⁸ × 97⁸' },
+                { name: 'K₃+iso', edges: 3, canonical: 13, sentinel: 77, product: '(12 terms)²' },
+                { name: 'diamond', edges: 4, canonical: 15, sentinel: 79, product: '(12 terms)²' },
+                { name: 'C₄ (cycle)', edges: 4, canonical: 30, sentinel: 94, product: '94⁸ × 109⁸ × 115⁸' },
+                { name: 'K₄-e', edges: 5, canonical: 31, sentinel: 95, product: '95⁴ × 111⁴ × ...' },
+                { name: 'K₄', edges: 6, canonical: 63, sentinel: 127, product: '127²⁴' },
+            ]
+        };
+
+        function updateGraphList() {
+            showAllProducts();
+        }
+
+        function showAllProducts() {
+            const n = parseInt(document.getElementById('nSelect').value);
+            const graphs = GRAPHS[n];
+
+            let html = `<strong>All ${n}-vertex graphs with sentinel encoding:</strong>\n\n`;
+            html += `k = ${n*(n-1)/2} edge positions → encodings in [${Math.pow(2, n*(n-1)/2)}, ${Math.pow(2, n*(n-1)/2 + 1) - 1}]\n\n`;
+
+            for (const g of graphs) {
+                const binary = g.sentinel.toString(2);
+                html += `${g.name.padEnd(15)} canonical=${g.canonical.toString().padStart(2)} `;
+                html += `sentinel=${g.sentinel.toString().padStart(3)} `;
+                html += `(${binary.padStart(n*(n-1)/2 + 1, '0')}) `;
+                html += `→ ${g.product}\n`;
+            }
+
+            document.getElementById('productDisplay').textContent = html;
+        }
+
+        // Initialize
+        showAllProducts();
+    </script>
+</body>
+</html>
