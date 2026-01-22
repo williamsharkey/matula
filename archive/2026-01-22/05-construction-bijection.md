@@ -90,7 +90,8 @@ where cₖ ∈ {0, 1, ..., 2^k - 1}
 
 Different vertex orderings give different sequences for the same graph.
 
-The **canonical construction** = lexicographically smallest sequence over all orderings.
+The **canonical construction** = minimum mixed-radix integer over all orderings
+(equivalently, the smallest encoded integer for the construction sequence).
 
 ## Encoding as Integer (Mixed-Radix)
 
@@ -118,10 +119,10 @@ This gives a direct correspondence between graphs and rooted trees.
 | Empty₄ | 0 | [0,0,0] | 0 | o |
 | edge+2iso | 1 | [1,0,0] | 1 | o |
 | P₃+iso | 3 | [1,1,0] | 3 | ((o)) |
-| **P₄ (path)** | 11 | [1,3,0] | **7** | **((o o))** |
+| **P₄ (path)** | 11 | [1,2,1] | **13** | **((o o))** |
 | **star K₁,₃** | 7 | [1,1,1] | **11** | **((((o))))** |
 | 2K₂ | 12 | [0,2,1] | 12 | (o o (o)) |
-| K₃+iso | 13 | [1,2,1] | 13 | ((o (o))) |
+| K₃+iso | 13 | [1,3,0] | 7 | ((o (o))) |
 | diamond | 15 | [1,3,1] | 15 | ((o) ((o))) |
 | C₄ (cycle) | 30 | [0,3,3] | 30 | (o (o) ((o))) |
 | K₄-edge | 31 | [1,3,3] | 31 | (((((o))))) |
@@ -129,18 +130,20 @@ This gives a direct correspondence between graphs and rooted trees.
 
 ## The Swap: Construction vs Canonical
 
-The construction ordering **differs** from canonical ordering:
+Under the minimum-integer convention, the construction ordering **aligns** with
+canonical ordering on star vs path. (Earlier lex-min sequence notes had the swap.)
 
 | Position | Canonical Order | Construction Order |
 |----------|-----------------|-------------------|
-| 4 | star (canon=7) | **path P₄** (const=7) |
-| 5 | **path P₄** (canon=11) | star (const=11) |
+| 4 | star (canon=7) | star (const=11) |
+| 5 | **path P₄** (canon=11) | **path P₄** (const=13) |
 
 **Why?**
 - The PATH is simpler to construct: each vertex connects to just one previous
 - The STAR requires one vertex to connect to ALL previous vertices
 
-Construction measures "build complexity", not "matrix sparsity".
+Construction measures "build complexity", not "matrix sparsity" (but the swap is
+convention-dependent).
 
 ---
 
@@ -150,9 +153,10 @@ Construction measures "build complexity", not "matrix sparsity".
 |-----------|------------------|--------------|
 | Canonical (upper-tri min) | Matrix sparsity | star < path |
 | Product (encoding product) | Symmetry | star < path |
-| **Construction** | Build complexity | **path < star** |
+| **Construction** | Build complexity | star < path |
 
-The construction bijection is the only one where the PATH comes before the STAR!
+Under the minimum-integer convention, the construction bijection agrees with
+canonical ordering on star vs path.
 
 ---
 

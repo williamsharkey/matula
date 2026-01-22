@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Graphs as Construction Histories</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient">
+    <span class="orb orb-a"></span>
+    <span class="orb orb-b"></span>
+    <span class="orb orb-c"></span>
+  </div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Matula numbers meet graph construction</p>
+      <h1>Graphs as construction histories</h1>
+      <p class="lead">
+        A story-first tour of a new bijection: build a graph step by step,
+        encode the choices in mixed radices, and read the result as a rooted tree.
+      </p>
+      <div class="hero-actions">
+        <a class="btn" href="#beat-1">Explore the beats</a>
+        <a class="btn ghost" href="../paper/main.pdf">Open the paper PDF</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="beat-1" class="beat">
+      <div class="beat-text">
+        <p class="beat-tag">Beat 1</p>
+        <h2>Build a graph, record the choices</h2>
+        <p>
+          Each new vertex chooses which earlier vertices to connect to. That choice
+          is a bitmask. Stack those bitmasks into a mixed-radix number and you get
+          a construction integer.
+        </p>
+      </div>
+      <div class="beat-card">
+        <div class="control-row">
+          <label for="graphSelect">Pick a graph</label>
+          <select id="graphSelect"></select>
+        </div>
+        <canvas id="graphCanvas" width="280" height="220"></canvas>
+        <div class="stat-grid">
+          <div>
+            <span class="stat-label">Sequence</span>
+            <span id="seqDisplay" class="stat-value"></span>
+          </div>
+          <div>
+            <span class="stat-label">Integer</span>
+            <span id="intDisplay" class="stat-value"></span>
+          </div>
+        </div>
+        <figure class="figure">
+          <img src="../figures/path-star.svg" alt="Path P4 versus star K1,3" />
+          <figcaption>Path vs star: same size, different construction profiles.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="beat">
+      <div class="beat-text">
+        <p class="beat-tag">Beat 2</p>
+        <h2>Mixed radices, not binary</h2>
+        <p>
+          Step k has 2^k choices. The encoding weights each step by the product
+          of earlier radices. Try your own sequence for n = 4.
+        </p>
+      </div>
+      <div class="beat-card">
+        <div class="control-row split">
+          <div>
+            <label for="c1">c1 (0..1)</label>
+            <input id="c1" type="number" min="0" max="1" value="1" />
+          </div>
+          <div>
+            <label for="c2">c2 (0..3)</label>
+            <input id="c2" type="number" min="0" max="3" value="2" />
+          </div>
+          <div>
+            <label for="c3">c3 (0..7)</label>
+            <input id="c3" type="number" min="0" max="7" value="1" />
+          </div>
+        </div>
+        <div class="formula">
+          integer = c1 + 2 * c2 + 2 * 4 * c3
+        </div>
+        <div class="stat-grid">
+          <div>
+            <span class="stat-label">Sequence</span>
+            <span id="customSeq" class="stat-value"></span>
+          </div>
+          <div>
+            <span class="stat-label">Integer</span>
+            <span id="customInt" class="stat-value"></span>
+          </div>
+        </div>
+        <figure class="figure">
+          <img src="../figures/matula-tree.svg" alt="Matula tree sketch" />
+          <figcaption>A Matula tree sketch for a construction integer.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="beat">
+      <div class="beat-text">
+        <p class="beat-tag">Try It</p>
+        <h2>Build a five-vertex story</h2>
+        <p>
+          For n = 5, there are four steps. Each step has twice as many choices as
+          the last. Try a custom sequence and see the mixed-radix integer.
+        </p>
+      </div>
+      <div class="beat-card">
+        <div class="control-row split">
+          <div>
+            <label for="d1">c1 (0..1)</label>
+            <input id="d1" type="number" min="0" max="1" value="1" />
+          </div>
+          <div>
+            <label for="d2">c2 (0..3)</label>
+            <input id="d2" type="number" min="0" max="3" value="2" />
+          </div>
+          <div>
+            <label for="d3">c3 (0..7)</label>
+            <input id="d3" type="number" min="0" max="7" value="1" />
+          </div>
+          <div>
+            <label for="d4">c4 (0..15)</label>
+            <input id="d4" type="number" min="0" max="15" value="3" />
+          </div>
+        </div>
+        <div class="formula">
+          integer = c1 + 2 * c2 + 2 * 4 * c3 + 2 * 4 * 8 * c4
+        </div>
+        <p class="mini">
+          Valid ranges grow by powers of two: c1 in [0,1], c2 in [0,3], c3 in [0,7], c4 in [0,15].
+        </p>
+        <div class="stat-grid">
+          <div>
+            <span class="stat-label">Sequence</span>
+            <span id="customSeq5" class="stat-value"></span>
+          </div>
+          <div>
+            <span class="stat-label">Integer</span>
+            <span id="customInt5" class="stat-value"></span>
+          </div>
+        </div>
+        <button class="btn ghost" id="randomize5" type="button">Randomize</button>
+      </div>
+    </section>
+
+    <section class="beat">
+      <div class="beat-text">
+        <p class="beat-tag">Beat 3</p>
+        <h2>Canonicalize by taking the minimum</h2>
+        <p>
+          Every labeling gives a different sequence. The canonical construction is
+          the minimum mixed-radix integer across all labelings. Here is the minimum
+          for small graphs on four vertices.
+        </p>
+      </div>
+      <div class="beat-card">
+        <div class="control-row">
+          <label for="canonSelect">Choose a graph</label>
+          <select id="canonSelect"></select>
+        </div>
+        <div class="stat-grid">
+          <div>
+            <span class="stat-label">Labelings checked</span>
+            <span id="canonCount" class="stat-value"></span>
+          </div>
+          <div>
+            <span class="stat-label">Min integer</span>
+            <span id="canonMin" class="stat-value"></span>
+          </div>
+        </div>
+        <div class="mono-panel" id="canonSeqs"></div>
+        <figure class="figure">
+          <img src="../figures/cycle-matching.svg" alt="Cycle C4 versus matching 2K2" />
+          <figcaption>Cycle vs matching: same n and m, different symmetry.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="beat">
+      <div class="beat-text">
+        <p class="beat-tag">Beat 4</p>
+        <h2>Topology vs construction</h2>
+        <p>
+          The red-node split separates how blocks connect from what each block is.
+          The barbell and two-disconnected-triangles share the same blocks but a
+          different topology.
+        </p>
+      </div>
+      <div class="beat-card wide">
+        <div class="split-panel">
+          <div>
+            <h3>Barbell</h3>
+            <p class="mini">Two triangles connected by a bridge.</p>
+            <pre class="mono-panel">topology: triangle -- bridge -- triangle
+construction: [K3, K3]</pre>
+          </div>
+          <div>
+            <h3>Two triangles</h3>
+            <p class="mini">Disconnected components.</p>
+            <pre class="mono-panel">topology: triangle   triangle
+construction: [K3, K3]</pre>
+          </div>
+        </div>
+        <figure class="figure">
+          <img src="../figures/barbell-two-triangles.svg" alt="Barbell versus two disconnected triangles" />
+          <figcaption>Same blocks, different block-cut topology.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="beat">
+      <div class="beat-text">
+        <p class="beat-tag">Related Work</p>
+        <h2>How others have numbered graphs</h2>
+        <p>
+          A classic approach assigns each graph the smallest possible adjacency
+          code among all relabelings. Think: write down the adjacency matrix, read
+          its lower triangle as bits, and pick the smallest number you can get.
+        </p>
+        <p>
+          That idea appears in graph-code and mincode literature (OEIS
+          <a href="https://oeis.org/A076184">A076184</a>,
+          <a href="https://oeis.org/A382754">A382754</a>,
+          <a href="https://oeis.org/A382757">A382757</a>). Our approach
+          keeps the “minimum over labelings” idea, but the number comes from a
+          construction history and then becomes a Matula tree, so the code itself
+          tells a build story rather than just a snapshot.
+        </p>
+      </div>
+      <div class="beat-card">
+        <div class="mono-panel">
+Classic: minimum adjacency code (graph-code/mincode numbers)\nThis work: minimum construction integer + Matula tree decoding
+        </div>
+      </div>
+    </section>
+
+    <section class="beat">
+      <div class="beat-text">
+        <p class="beat-tag">Takeaway</p>
+        <h2>From static snapshots to build stories</h2>
+        <p>
+          Graph-code numbers give a canonical snapshot. The construction
+          bijection gives a build narrative, and the Matula tree turns that
+          narrative into a readable diagram.
+        </p>
+        <p>
+          If you want the formal details, the paper connects the construction
+          integer to a rigorous bijection and complexity story.
+        </p>
+      </div>
+      <div class="beat-card">
+        <div class="mono-panel">
+Minimum adjacency code: a canonical label\nConstruction integer: a canonical build story\nMatula tree: a visual grammar
+        </div>
+        <a class="btn" href="../paper/main.pdf">Open the paper PDF</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Draft interactive for a non-expert audience. Built with vanilla JS.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

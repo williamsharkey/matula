@@ -7,7 +7,7 @@
 
 **Central idea**
 - Treat graphs not as static adjacency objects, but as the result of **construction histories**.
-- A graph corresponds to the *set of all valid build sequences*; the canonical representative is the **lexicographically minimal construction**.
+- A graph corresponds to the *set of all valid build sequences*; the canonical representative is the **minimum mixed-radix construction integer**.
 - This induces:
   - a conceptual bijection between graphs and integers
   - a *new ordering* of graphs based on **constructional complexity**
@@ -58,7 +58,7 @@
 
 **Two kinds of gaps**
 1. **Invalid encodings** (syntactic): not a graph at all.
-2. **Shadow encodings** (semantic): valid graph, but not lex-minimal.
+2. **Shadow encodings** (semantic): valid graph, but not minimum under the mixed-radix integer.
 
 **Refined insight**
 - Gaps measure **constructional non-rigidity**, not symmetry alone.

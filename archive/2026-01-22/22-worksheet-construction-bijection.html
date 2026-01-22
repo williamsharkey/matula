@@ -369,13 +369,13 @@
     <h2>The Canonical Sequence</h2>
 
     <p>
-        Different vertex orderings produce different sequences for the same graph. The <strong>canonical construction</strong> is the lexicographically smallest one.
+        Different vertex orderings produce different sequences for the same graph. The <strong>canonical construction</strong> is the minimum mixed-radix integer over all orderings.
     </p>
 
     <div class="insight-box">
         <h4>Why "canonical"?</h4>
         <p>
-            Just as the canonical adjacency matrix is the lex-min over all vertex labelings, the canonical construction sequence is the lex-min build order. Isomorphic graphs get the same canonical sequence.
+            Just as the canonical adjacency matrix is the lex-min over all vertex labelings, the canonical construction is the minimum mixed-radix integer over all build orders. Isomorphic graphs get the same canonical integer.
         </p>
     </div>
 
@@ -422,8 +422,8 @@
         </tr>
         <tr class="swap-highlight">
             <td><strong>Path P₄</strong></td>
-            <td>[1, 3, 0]</td>
-            <td><strong>7</strong></td>
+            <td>[1, 2, 1]</td>
+            <td><strong>13</strong></td>
             <td class="tree-notation"><strong>((o o))</strong></td>
         </tr>
         <tr class="swap-highlight">
@@ -440,8 +440,8 @@
         </tr>
         <tr>
             <td>Triangle + isolated</td>
-            <td>[1, 2, 1]</td>
-            <td>13</td>
+            <td>[1, 3, 0]</td>
+            <td>7</td>
             <td class="tree-notation">((o (o)))</td>
         </tr>
         <tr>
@@ -470,10 +470,10 @@
         </tr>
     </table>
 
-    <h2>The Swap: Path vs Star</h2>
+    <h2>Path vs Star (Convention-Dependent)</h2>
 
     <p>
-        Notice the highlighted rows. In the <strong>canonical encoding</strong> (upper-triangle minimum), the star comes before the path. But in the <strong>construction encoding</strong>, it's reversed:
+        Notice the highlighted rows. In the <strong>canonical encoding</strong> (upper-triangle minimum), the star comes before the path. Under the <strong>minimum-integer construction</strong> convention, the construction ordering aligns with that on this pair.
     </p>
 
     <table class="comparison-table">
@@ -485,22 +485,22 @@
         <tr class="swap-highlight">
             <td>Path P₄</td>
             <td>11</td>
-            <td><strong>7</strong> (smaller!)</td>
+            <td>13</td>
         </tr>
         <tr class="swap-highlight">
             <td>Star K₁,₃</td>
             <td><strong>7</strong> (smaller!)</td>
-            <td>11</td>
+            <td><strong>11</strong> (smaller!)</td>
         </tr>
     </table>
 
     <div class="insight-box">
-        <h4>Why does the path come first?</h4>
+        <h4>Why does the convention matter?</h4>
         <p>
-            The path is <strong>simpler to construct</strong>. Each vertex only connects to one previous vertex (forming a chain). The star requires the center vertex to connect to <em>all</em> previous vertices at once.
+            The path is locally simple to build, but the <strong>global minimum</strong> over all labelings is taken after encoding into a mixed-radix integer. That choice can differ from lex-min sequence ordering.
         </p>
         <p style="margin-top: 15px;">
-            <strong>Path P₄:</strong> sequence [1, 3, 0] — the last vertex connects to nothing new<br>
+            <strong>Path P₄:</strong> sequence [1, 2, 1] — each step extends the chain<br>
             <strong>Star:</strong> sequence [1, 1, 1] — every vertex connects to the center
         </p>
     </div>
@@ -526,12 +526,12 @@
         <tr style="background: #fff3cd;">
             <td><strong>Construction</strong></td>
             <td>Build complexity</td>
-            <td><strong>Path &lt; Star</strong></td>
+            <td><strong>Star &lt; Path</strong></td>
         </tr>
     </table>
 
     <p>
-        The construction bijection is the only one where paths come before stars. It measures how <em>easy</em> a graph is to build incrementally.
+        The construction bijection still emphasizes <em>build complexity</em>, but the precise ordering can depend on how the canonical representative is selected.
     </p>
 
     <h2>Interactive Explorer</h2>
@@ -584,10 +584,10 @@
             empty: { edges: [], seq: [0,0,0], int: 0, tree: 'o', name: 'Empty₄' },
             edge: { edges: [[0,1]], seq: [1,0,0], int: 1, tree: 'o', name: 'Single edge' },
             p3iso: { edges: [[0,1],[1,2]], seq: [1,1,0], int: 3, tree: '((o))', name: 'P₃ + isolated' },
-            path: { edges: [[0,1],[1,2],[2,3]], seq: [1,3,0], int: 7, tree: '((o o))', name: 'Path P₄' },
+            path: { edges: [[0,1],[1,2],[2,3]], seq: [1,2,1], int: 13, tree: '((o o))', name: 'Path P₄' },
             star: { edges: [[0,1],[0,2],[0,3]], seq: [1,1,1], int: 11, tree: '((((o))))', name: 'Star K₁,₃' },
             match: { edges: [[0,1],[2,3]], seq: [0,2,1], int: 12, tree: '(o o (o))', name: 'Matching 2K₂' },
-            tri: { edges: [[0,1],[0,2],[1,2]], seq: [1,2,1], int: 13, tree: '((o (o)))', name: 'K₃ + isolated' },
+            tri: { edges: [[0,1],[0,2],[1,2]], seq: [1,3,0], int: 7, tree: '((o (o)))', name: 'K₃ + isolated' },
             diamond: { edges: [[0,1],[0,2],[1,2],[1,3]], seq: [1,3,1], int: 15, tree: '((o) ((o)))', name: 'Diamond' },
             c4: { edges: [[0,1],[1,2],[2,3],[0,3]], seq: [0,3,3], int: 30, tree: '(o (o) ((o)))', name: '4-cycle C₄' },
             k4me: { edges: [[0,1],[0,2],[0,3],[1,2],[1,3]], seq: [1,3,3], int: 31, tree: '(((((o)))))', name: 'K₄ - edge' },

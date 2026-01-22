@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300">
+  <rect width="900" height="300" fill="#fffaf4" />
+  <g stroke="#1f1b16" stroke-width="3" fill="#ffffff">
+    <line x1="140" y1="80" x2="300" y2="80" />
+    <line x1="300" y1="80" x2="300" y2="220" />
+    <line x1="300" y1="220" x2="140" y2="220" />
+    <line x1="140" y1="220" x2="140" y2="80" />
+    <circle cx="140" cy="80" r="16" />
+    <circle cx="300" cy="80" r="16" />
+    <circle cx="300" cy="220" r="16" />
+    <circle cx="140" cy="220" r="16" />
+  </g>
+  <g stroke="#1f1b16" stroke-width="3" fill="#ffffff">
+    <line x1="590" y1="120" x2="680" y2="120" />
+    <line x1="590" y1="200" x2="680" y2="200" />
+    <circle cx="590" cy="120" r="16" />
+    <circle cx="680" cy="120" r="16" />
+    <circle cx="590" cy="200" r="16" />
+    <circle cx="680" cy="200" r="16" />
+  </g>
+  <text x="205" y="260" font-family="Georgia, serif" font-size="20" fill="#1f1b16">Cycle C4</text>
+  <text x="590" y="260" font-family="Georgia, serif" font-size="20" fill="#1f1b16">Matching 2K2</text>
+</svg>
