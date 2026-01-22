@@ -71,6 +71,27 @@ function mixedRadix(seq) {
   return sum;
 }
 
+// Convert a bitmask to letter notation: uppercase = connected, lowercase = not connected
+// e.g., for step k (adding vertex with index k), mask indicates connections to vertices 0..k-1
+// Letters are A, B, C, ... corresponding to vertices in construction order
+function maskToLetters(mask, numPrevVertices) {
+  let result = "";
+  for (let i = 0; i < numPrevVertices; i++) {
+    const letter = String.fromCharCode(65 + i); // A, B, C, ...
+    if (mask & (1 << i)) {
+      result += letter; // uppercase = connected
+    } else {
+      result += letter.toLowerCase(); // lowercase = not connected
+    }
+  }
+  return result;
+}
+
+// Convert a sequence of bitmasks to letter notation
+function seqToLetters(seq) {
+  return seq.map((mask, i) => maskToLetters(mask, i + 1));
+}
+
 function drawGraph(edges) {
   const ctx = graphCanvas.getContext("2d");
   const w = graphCanvas.width;
@@ -112,7 +133,7 @@ function drawGraph(edges) {
     ctx.font = "16px Georgia";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(i.toString(), pos.x, pos.y);
+    ctx.fillText(String.fromCharCode(65 + i), pos.x, pos.y); // A, B, C, D
   });
 }
 
@@ -121,7 +142,8 @@ function setGraph(id) {
   if (!graph) return;
   drawGraph(graph.edges);
   const seq = graph.seq;
-  seqDisplay.textContent = `[${seq.join(", ")}]`;
+  const letters = seqToLetters(seq);
+  seqDisplay.textContent = `[${letters.join(", ")}]`;
   intDisplay.textContent = mixedRadix(seq).toString();
 }
 
@@ -148,7 +170,8 @@ function updateCustomSequence() {
   c3Input.value = c3;
 
   const seq = [c1, c2, c3];
-  customSeq.textContent = `[${seq.join(", ")}]`;
+  const letters = seqToLetters(seq);
+  customSeq.textContent = `[${letters.join(", ")}]`;
   customInt.textContent = mixedRadix(seq).toString();
 }
 
@@ -163,7 +186,8 @@ function updateCustomSequence5() {
   d4Input.value = d4;
 
   const seq = [d1, d2, d3, d4];
-  customSeq5.textContent = `[${seq.join(", ")}]`;
+  const letters = seqToLetters(seq);
+  customSeq5.textContent = `[${letters.join(", ")}]`;
   customInt5.textContent = mixedRadix(seq).toString();
 }
 
@@ -223,7 +247,9 @@ function updateCanonical() {
   canonMin.textContent = results[0].value.toString();
 
   const lines = results.map((item) => {
-    return `perm [${item.perm.join(", ")}]  seq [${item.seq.join(", ")}]  int ${item.value}`;
+    const permLetters = item.perm.map(i => String.fromCharCode(65 + i)).join("");
+    const seqLetters = seqToLetters(item.seq);
+    return `order ${permLetters}  seq [${seqLetters.join(", ")}]  int ${item.value}`;
   });
   canonSeqs.textContent = lines.join("\n");
 }
