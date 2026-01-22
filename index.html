@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matula Numbers &amp; Graph Encoding</title>
+    <style>
+        :root {
+            --primary: #4a90d9;
+            --secondary: #7cb342;
+            --accent: #e53935;
+            --bg: #fafafa;
+            --card-bg: #fff;
+            --text: #333;
+            --text-muted: #666;
+            --border: #ddd;
+            --code-bg: #f5f5f5;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--primary), #2c5282);
+            color: white;
+        }
+
+        header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        nav {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h3 {
+            color: var(--text);
+            margin-top: 25px;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.85em;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border-left: 4px solid #ff9800;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .highlight.novel {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-left-color: var(--secondary);
+        }
+
+        .highlight h4 {
+            margin: 0 0 10px 0;
+            color: #e65100;
+        }
+
+        .highlight.novel h4 {
+            color: #2e7d32;
+        }
+
+        .interactive {
+            border: 2px dashed var(--border);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .interactive-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .interactive-header h4 {
+            margin: 0;
+            color: var(--primary);
+        }
+
+        input, textarea, select {
+            font-family: inherit;
+            font-size: 14px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
+        }
+
+        input.invalid {
+            background: #fffde7;
+            border-color: #fbc02d;
+        }
+
+        input.valid {
+            background: #f1f8e9;
+            border-color: #8bc34a;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #3a7bc8;
+        }
+
+        button.secondary {
+            background: var(--secondary);
+        }
+
+        button.secondary:hover {
+            background: #689f38;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--code-bg);
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .card h5 {
+            margin: 0 0 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(74, 144, 217, 0.05);
+        }
+
+        .tree-display {
+            font-family: monospace;
+            font-size: 1.1em;
+            color: var(--primary);
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .flex-row > * {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #visualization-area {
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fafafa;
+            border-radius: 5px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tag.new { background: #c8e6c9; color: #2e7d32; }
+        .tag.known { background: #e3f2fd; color: #1565c0; }
+
+        .correspondence-table {
+            font-size: 0.85em;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+
+        footer a {
+            color: var(--primary);
+        }
+
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.8em; }
+            .container { padding: 10px; }
+            section { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Matula Numbers &amp; Graph Encoding</h1>
+        <p>A bijection between integers, rooted trees, and graphs</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#explorer">Explorer</a></li>
+            <li><a href="#blocks">Blocks &amp; Cuts</a></li>
+            <li><a href="#red-node">Red Node Encoding</a></li>
+            <li><a href="#operations">Operations</a></li>
+            <li><a href="#novelty">Novelty</a></li>
+            <li><a href="#future">Future Directions</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2>Overview</h2>
+
+            <p>David W. Matula discovered a beautiful bijection between <strong>positive integers</strong> and <strong>rooted trees</strong>. This encoding uses prime factorization to recursively build tree structure:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h5>The Bijection</h5>
+                    <ul>
+                        <li><code>1</code> &harr; single node (leaf)</li>
+                        <li><code>prime(k)</code> &harr; tree with one child encoding <code>k</code></li>
+                        <li><code>p &times; q</code> &harr; tree with children for <code>p</code> and <code>q</code></li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h5>Examples</h5>
+                    <ul>
+                        <li><code>1 = o</code> (leaf)</li>
+                        <li><code>2 = (o)</code> (prime(1))</li>
+                        <li><code>4 = (o o)</code> (2&times;2)</li>
+                        <li><code>6 = (o (o))</code> (2&times;3)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Key Insight: Trees Encode Graphs</h3>
+
+            <p>We extended Matula's tree encoding to <strong>arbitrary graphs</strong> by observing that every graph decomposes into:</p>
+
+            <ol>
+                <li><strong>Block-cut tree</strong>: How 2-connected components connect (topology)</li>
+                <li><strong>Block constructions</strong>: What each 2-connected block actually is</li>
+            </ol>
+
+            <p>This decomposition is itself a tree &mdash; and can be encoded as a Matula number!</p>
+        </section>
+
+        <!-- Interactive Explorer -->
+        <section id="explorer">
+            <h2>Interactive Explorer</h2>
+
+            <div class="interactive">
+                <div class="interactive-header">
+                    <h4>Matula Number &harr; Tree</h4>
+                    <span style="font-size: 0.85em; color: var(--text-muted);">Auto-updates as you type</span>
+                </div>
+
+                <div class="flex-row">
+                    <div>
+                        <label>Matula number:</label>
+                        <input type="number" id="matula-input" value="14" min="1" max="100000">
+                    </div>
+                    <div>
+                        <label>Tree notation:</label>
+                        <input type="text" id="tree-input" placeholder="(o (o o))">
+                    </div>
+                </div>
+
+                <div id="visualization-area" style="margin-top: 20px">
+                    <span style="color: #999">Enter a number above</span>
+                </div>
+
+                <div id="result-info" style="margin-top: 15px; font-family: monospace;"></div>
+            </div>
+
+            <div class="interactive">
+                <div class="interactive-header">
+                    <h4>Graph DSL</h4>
+                    <span style="font-size: 0.85em; color: var(--text-muted);">Auto-updates as you type</span>
+                </div>
+
+                <p style="margin-top: 0; color: var(--text-muted); font-size: 0.9em;">
+                    Build graphs using: <code>V</code> (vertex), <code>Kn</code> (complete), <code>Pn</code> (path),
+                    <code>Cn</code> (cycle), <code>Sn</code> (star), <code>+</code> (disjoint union), <code>.</code> (join at cut)
+                </p>
+
+                <input type="text" id="dsl-input" value="K3 + K2" placeholder="K3 + K2">
+
+                <div id="dsl-result" style="margin-top: 15px"></div>
+            </div>
+        </section>
+
+        <!-- Blocks and Cuts Explanation -->
+        <section id="blocks">
+            <h2>Understanding Blocks &amp; Cut Vertices</h2>
+
+            <p>Before we can encode graphs as numbers, we need to understand how graphs decompose into simpler pieces. This is the key insight that makes our encoding work.</p>
+
+            <h3>The Big Picture</h3>
+
+            <div class="highlight">
+                <h4>Every graph breaks down into two things:</h4>
+                <ol style="margin-bottom: 0;">
+                    <li><strong>Topology</strong> &mdash; How the pieces connect (the "skeleton")</li>
+                    <li><strong>Construction</strong> &mdash; What each piece actually is (the "flesh")</li>
+                </ol>
+            </div>
+
+            <h3>What is a "Block"?</h3>
+
+            <p>In graph theory, a <strong>block</strong> is a maximal subgraph with no cut vertex. There are two types:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h5>True 2-Connected Blocks</h5>
+                    <p>These are the "robust chunks" &mdash; subgraphs where removing <em>any</em> single vertex still leaves the rest connected.</p>
+                    <p>Intuition: In a road network, this is a region where you can always find an alternate route if one intersection is closed.</p>
+                    <ul>
+                        <li><strong>Triangle (K₃)</strong>: Remove any vertex &rarr; still connected</li>
+                        <li><strong>Square (C₄)</strong>: Remove any vertex &rarr; still a path</li>
+                        <li><strong>K₄, C₅, etc.</strong>: Multiple redundant paths</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h5>Trivial Blocks (Bridges)</h5>
+                    <p>A single edge connecting two vertices is called a <strong>bridge</strong>. It's technically a "block" in the decomposition, but it's <em>not</em> 2-connected.</p>
+                    <p>Why? If you remove either endpoint, there's nothing left to be "connected"!</p>
+                    <ul>
+                        <li><strong>Single edge (K₂)</strong>: The degenerate case</li>
+                        <li>Bridges are the "weak links" in a graph</li>
+                        <li>They appear as separate blocks in the decomposition</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h4>Why include trivial blocks?</h4>
+                <p>The block-cut decomposition needs to account for <em>every</em> edge. A bridge (single edge not part of any cycle) forms its own trivial block. This ensures the decomposition captures the complete structure of the graph, including its weak points.</p>
+            </div>
+
+            <h3>What is a "Cut Vertex"?</h3>
+
+            <p>A <strong>cut vertex</strong> (or articulation point) is a vertex whose removal disconnects the graph. It's a "chokepoint" or "bridge" between blocks.</p>
+
+            <pre><code>     Block A          Block B
+    ┌───────┐        ┌───────┐
+    │ ●───● │        │ ●───● │
+    │ │   │ │        │ │   │ │
+    │ ●───●─┼────●───┼─●───● │
+    └───────┘    ↑   └───────┘
+              Cut Vertex
+         (removing it splits
+          the graph in two)</code></pre>
+
+            <h3>The Block-Cut Tree</h3>
+
+            <p>The <strong>block-cut tree</strong> shows how blocks connect through cut vertices. It's always a tree (no cycles), which makes it perfect for encoding!</p>
+
+            <div class="interactive">
+                <div class="interactive-header">
+                    <h4>Interactive: See the Block-Cut Decomposition</h4>
+                </div>
+
+                <p style="margin-top: 0; color: var(--text-muted); font-size: 0.9em;">
+                    Select a graph to see how it decomposes into blocks connected by cut vertices.
+                </p>
+
+                <select id="block-example-select" style="width: auto; min-width: 200px;">
+                    <option value="path">Path P₄ (●─●─●─●)</option>
+                    <option value="triangle">Triangle K₃</option>
+                    <option value="bowtie">Bowtie (two triangles sharing a vertex)</option>
+                    <option value="lollipop">Lollipop (triangle + path)</option>
+                    <option value="barbell">Barbell (two triangles connected by edge)</option>
+                </select>
+
+                <div id="block-decomposition" style="margin-top: 20px;"></div>
+            </div>
+
+            <h3>Block Construction: What IS Each Block?</h3>
+
+            <p>Once we know the topology (how blocks connect), we need to know what each block actually <em>is</em>. Two graphs can have the same topology but different blocks:</p>
+
+            <div class="grid">
+                <div class="card" style="text-align: center;">
+                    <h5>Same Topology</h5>
+                    <p>Both are: "two blocks sharing a cut vertex"</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h5>Different Constructions</h5>
+                    <p><strong>Triangle + Triangle</strong> (bowtie)<br>vs<br><strong>Triangle + Square</strong></p>
+                </div>
+            </div>
+
+            <p>The <strong>construction</strong> of a block describes its internal structure. For example:</p>
+
+            <table>
+                <tr>
+                    <th>Block</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Construction Matula</th>
+                </tr>
+                <tr>
+                    <td>K₂</td>
+                    <td><em>trivial</em></td>
+                    <td>Single edge (bridge) &mdash; NOT 2-connected</td>
+                    <td>2</td>
+                </tr>
+                <tr>
+                    <td>K₃</td>
+                    <td>2-connected</td>
+                    <td>Triangle &mdash; remove any vertex, still connected</td>
+                    <td>14</td>
+                </tr>
+                <tr>
+                    <td>C₄</td>
+                    <td>2-connected</td>
+                    <td>Square (4-cycle) &mdash; remove any vertex, still a path</td>
+                    <td>30</td>
+                </tr>
+                <tr>
+                    <td>K₄</td>
+                    <td>2-connected</td>
+                    <td>Complete graph on 4 &mdash; highly redundant</td>
+                    <td>134</td>
+                </tr>
+            </table>
+
+            <h3>Putting It Together</h3>
+
+            <div class="highlight novel">
+                <h4>The Encoding Recipe</h4>
+                <ol style="margin-bottom: 0;">
+                    <li><strong>Find the blocks</strong> &mdash; Identify 2-connected components and bridges</li>
+                    <li><strong>Find the cut vertices</strong> &mdash; Where do blocks connect?</li>
+                    <li><strong>Build the block-cut tree</strong> &mdash; This is the topology</li>
+                    <li><strong>Encode each block</strong> &mdash; What is each block? (construction)</li>
+                    <li><strong>Combine into one tree</strong> &mdash; Topology + constructions = Matula tree</li>
+                </ol>
+            </div>
+
+            <div class="interactive">
+                <div class="interactive-header">
+                    <h4>Interactive: Full Decomposition</h4>
+                </div>
+
+                <p style="margin-top: 0; color: var(--text-muted); font-size: 0.9em;">
+                    Enter a graph expression to see its complete decomposition into topology and construction.
+                </p>
+
+                <input type="text" id="decomp-input" value="K3.K3" placeholder="K3.K3 (bowtie)">
+
+                <div id="decomp-result" style="margin-top: 20px;"></div>
+            </div>
+
+            <h3>Why This Matters</h3>
+
+            <p>This decomposition is powerful because:</p>
+
+            <ul>
+                <li><strong>It's unique</strong> &mdash; Every graph has exactly one block-cut tree</li>
+                <li><strong>It's a tree</strong> &mdash; Trees can be encoded as Matula numbers!</li>
+                <li><strong>It's hierarchical</strong> &mdash; We can encode topology and construction separately</li>
+                <li><strong>It's meaningful</strong> &mdash; The structure reveals graph properties</li>
+            </ul>
+        </section>
+
+        <!-- Red Node Encoding -->
+        <section id="red-node">
+            <h2>The Red Node Encoding</h2>
+
+            <div class="highlight novel">
+                <h4>Potentially Novel Concept</h4>
+                <p>The "red node" is a <strong>semantic boundary</strong> in the Matula tree that separates topology from construction. This framing appears to be new.</p>
+            </div>
+
+            <p>Visualize a graph's encoding as a Matula tree where one conceptual level is "red":</p>
+
+            <pre><code>        BLACK (root)
+           │
+      [topology]     ← How pieces connect (block-cut tree)
+           │
+         RED         ← Semantic boundary
+           │
+    [construction]   ← What each piece is (block structure)</code></pre>
+
+            <h3>The Collision-Free Scheme</h3>
+
+            <p>Our initial encoding had collisions (e.g., K₂+vertex and P₃ both mapped to 6). We developed a <strong>collision-free</strong> variant using tree depth:</p>
+
+            <table>
+                <tr>
+                    <th>Graph</th>
+                    <th>Type</th>
+                    <th>Matula</th>
+                    <th>Tree</th>
+                </tr>
+                <tr>
+                    <td>Single vertex</td>
+                    <td>connected</td>
+                    <td>2</td>
+                    <td class="tree-display">(o)</td>
+                </tr>
+                <tr>
+                    <td>Two isolated</td>
+                    <td>disconnected</td>
+                    <td>4</td>
+                    <td class="tree-display">(o o)</td>
+                </tr>
+                <tr>
+                    <td>K₂ (edge)</td>
+                    <td>connected</td>
+                    <td>3</td>
+                    <td class="tree-display">((o))</td>
+                </tr>
+                <tr>
+                    <td>K₂ + vertex</td>
+                    <td>disconnected</td>
+                    <td>6</td>
+                    <td class="tree-display">(o (o))</td>
+                </tr>
+                <tr>
+                    <td>2K₂</td>
+                    <td>disconnected</td>
+                    <td>9</td>
+                    <td class="tree-display">((o) (o))</td>
+                </tr>
+                <tr>
+                    <td>P₃ (path)</td>
+                    <td>connected</td>
+                    <td>23</td>
+                    <td class="tree-display">(((o) (o)))</td>
+                </tr>
+                <tr>
+                    <td>K₃ (triangle)</td>
+                    <td>connected</td>
+                    <td>43</td>
+                    <td class="tree-display">((o (o o)))</td>
+                </tr>
+                <tr>
+                    <td>K₁,₃ (star)</td>
+                    <td>connected</td>
+                    <td>103</td>
+                    <td class="tree-display">(((o) (o) (o)))</td>
+                </tr>
+                <tr>
+                    <td>P₄</td>
+                    <td>connected</td>
+                    <td>347</td>
+                    <td class="tree-display">(((o) ((o) (o))))</td>
+                </tr>
+                <tr>
+                    <td>K₄</td>
+                    <td>connected</td>
+                    <td>757</td>
+                    <td class="tree-display">((o ((o o o))))</td>
+                </tr>
+            </table>
+
+            <p><strong>Key rule:</strong> Connected graphs have <code>prime</code> Matula numbers (single child at root = wrapped). Disconnected graphs have <code>composite</code> Matulas (multiple children).</p>
+        </section>
+
+        <!-- Operations Correspondence -->
+        <section id="operations">
+            <h2>Tree ↔ Graph Operations</h2>
+
+            <div class="highlight">
+                <h4>Arithmetic Has Graph Meaning</h4>
+                <p>Every operation on Matula numbers corresponds to an operation on the encoded graph.</p>
+            </div>
+
+            <table class="correspondence-table">
+                <tr>
+                    <th>Arithmetic</th>
+                    <th>Tree Operation</th>
+                    <th>Graph Operation</th>
+                </tr>
+                <tr>
+                    <td><code>prime(n)</code></td>
+                    <td>Wrap: add parent with single child</td>
+                    <td>Connect at cut vertex</td>
+                </tr>
+                <tr>
+                    <td><code>primeIndex(p)</code></td>
+                    <td>Unwrap: remove single-child root</td>
+                    <td>Disconnect at cut vertex</td>
+                </tr>
+                <tr>
+                    <td><code>n × m</code></td>
+                    <td>Siblings: children of same root</td>
+                    <td>Disjoint union</td>
+                </tr>
+                <tr>
+                    <td><code>n / p</code></td>
+                    <td>Remove one child subtree</td>
+                    <td>Remove component</td>
+                </tr>
+                <tr>
+                    <td><code>isPrime(n)</code></td>
+                    <td>Root has exactly one child</td>
+                    <td>Graph is "atomic" connected</td>
+                </tr>
+                <tr>
+                    <td><code>factorize(n)</code></td>
+                    <td>Get root's children</td>
+                    <td>Get components/blocks</td>
+                </tr>
+            </table>
+
+            <h3>Example: Wrap Connects</h3>
+
+            <pre><code>2K₂ = 9 = ((o) (o))     →  two disjoint edges: •—•   •—•
+
+prime(9) = 23
+
+P₃  = 23 = (((o) (o)))  →  connected path: •—•—•
+
+Wrapping "connects at a cut vertex"!</code></pre>
+        </section>
+
+        <!-- Novelty Assessment -->
+        <section id="novelty">
+            <h2>Novelty Assessment</h2>
+
+            <p>Based on OEIS research and literature review:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h5><span class="tag known">Known</span> Matula-Goebel Numbers</h5>
+                    <p>The bijection between integers and rooted trees via prime factorization (OEIS <a href="https://oeis.org/A061773">A061773</a>) is well-established since Matula (1968) and Goebel (1980).</p>
+                </div>
+
+                <div class="card">
+                    <h5><span class="tag known">Known</span> Block-Cut Decomposition</h5>
+                    <p>The block-cut tree structure and algorithms (Hopcroft-Tarjan) are standard in graph theory.</p>
+                </div>
+
+                <div class="card">
+                    <h5><span class="tag new">Potentially New</span> Red Node Encoding</h5>
+                    <p>Using Matula trees to encode <em>graphs</em> (not just trees) via block-cut decomposition, with a semantic "red node" boundary, appears novel.</p>
+                </div>
+
+                <div class="card">
+                    <h5><span class="tag new">Potentially New</span> Collision-Free Scheme</h5>
+                    <p>Using tree depth to distinguish connected vs. disconnected graphs, and path vs. star topology via nesting structure.</p>
+                </div>
+
+                <div class="card">
+                    <h5><span class="tag new">Potentially New</span> Operation Correspondence</h5>
+                    <p>The systematic mapping of wrap/unwrap to connect/disconnect at cut vertices, and multiplication to disjoint union.</p>
+                </div>
+
+                <div class="card">
+                    <h5><span class="tag new">Potentially New</span> Graph DSL</h5>
+                    <p>A construction language where algebraic expressions directly map to graph operations and Matula encodings.</p>
+                </div>
+            </div>
+
+            <h3>Related OEIS Sequences</h3>
+
+            <ul>
+                <li><a href="https://oeis.org/A061773">A061773</a> - Matula-Goebel numbers for trees</li>
+                <li><a href="https://oeis.org/A000088">A000088</a> - Number of graphs on n unlabeled nodes</li>
+                <li><a href="https://oeis.org/A001349">A001349</a> - Number of connected graphs on n nodes</li>
+                <li><a href="https://oeis.org/A127301">A127301</a> - Maps plane trees to Matula-Goebel numbers</li>
+            </ul>
+
+            <p>The sequence of valid graph-encoding Matula numbers (2, 3, 4, 6, 9, 23, 43, 103, ...) does not appear in OEIS and could be submitted as a new sequence.</p>
+        </section>
+
+        <!-- Future Directions -->
+        <section id="future">
+            <h2>Promising Research Directions</h2>
+
+            <div class="grid">
+                <div class="card">
+                    <h5>1. Graph Isomorphism via Arithmetic</h5>
+                    <p>Two graphs are isomorphic iff they have the same Matula encoding. Can number-theoretic properties help detect isomorphism efficiently?</p>
+                </div>
+
+                <div class="card">
+                    <h5>2. Graph Properties from Numbers</h5>
+                    <p>What graph properties can be read directly from the Matula number? Connectivity = primality. What about planarity, chromatic number, etc.?</p>
+                </div>
+
+                <div class="card">
+                    <h5>3. Hierarchical Decomposition</h5>
+                    <p>Multiple "red levels" could encode nested community structure, modular decomposition, or multi-scale graph features.</p>
+                </div>
+
+                <div class="card">
+                    <h5>4. GCD and LCM for Graphs</h5>
+                    <p>What is gcd(G₁, G₂)? The "largest common substructure"? Could define a partial order on graphs.</p>
+                </div>
+
+                <div class="card">
+                    <h5>5. Extension to Other Structures</h5>
+                    <p>Directed graphs, hypergraphs, simplicial complexes &mdash; can similar encodings be developed?</p>
+                </div>
+
+                <div class="card">
+                    <h5>6. Compression &amp; Density</h5>
+                    <p>The encoding is sparse (~0.1% of integers are valid). Can we define a dense ranking while preserving structure?</p>
+                </div>
+            </div>
+
+            <h3>Open Questions</h3>
+
+            <ol>
+                <li>What is the asymptotic density of valid graph-encoding Matula numbers?</li>
+                <li>Is there a polynomial-time algorithm to test if a number is a valid graph encoding?</li>
+                <li>Can we characterize which Matula trees correspond to planar graphs?</li>
+                <li>What is the relationship between graph automorphisms and Matula tree symmetries?</li>
+            </ol>
+        </section>
+
+        <!-- Tools Reference -->
+        <section id="tools">
+            <h2>Library Reference</h2>
+
+            <p>The JavaScript library provides these modules:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h5>Matula.js</h5>
+                    <code>integerToTree(n)</code><br>
+                    <code>treeToInteger(tree)</code><br>
+                    <code>wrap(n) / unwrap(n)</code><br>
+                    <code>nthPrime(k) / primeIndex(p)</code>
+                </div>
+
+                <div class="card">
+                    <h5>Graph.js</h5>
+                    <code>complete(n) / path(n) / cycle(n)</code><br>
+                    <code>blockCutTree(g)</code><br>
+                    <code>findArticulationPoints(g)</code><br>
+                    <code>disjointUnion(g1, g2)</code>
+                </div>
+
+                <div class="card">
+                    <h5>Encoding.js</h5>
+                    <code>encode(g)</code><br>
+                    <code>decode(n)</code><br>
+                    <code>parseDSL(expr)</code><br>
+                    <code>buildAndEncode(expr)</code>
+                </div>
+
+                <div class="card">
+                    <h5>Visualization.js</h5>
+                    <code>renderTree(tree, container)</code><br>
+                    <code>renderGraph(g, container)</code><br>
+                    <code>renderGraphWithEncoding(g, c)</code>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p style="font-size: 1.1em; margin-bottom: 5px;">
+            <strong>William Sharkey &amp; Claude</strong> &mdash; January 21, 2026
+        </p>
+        <p>
+            <a href="https://williamsharkey.com/MatulaExplorer/MatulaExplorer.html">Original Matula Explorer</a> |
+            <a href="https://oeis.org/A061773">OEIS A061773</a>
+        </p>
+        <p style="font-size: 0.85em;">
+            References: Matula (1968), Goebel (1980), Harary &amp; Palmer "Graphical Enumeration" (1973)
+        </p>
+    </footer>
+
+    <!-- Load Libraries -->
+    <script src="lib/matula.js"></script>
+    <script src="lib/graph.js"></script>
+    <script src="lib/encoding.js"></script>
+    <script src="lib/visualization.js"></script>
+
+    <script>
+        // ============================================================
+        // Auto-updating Interactive Explorer
+        // ============================================================
+
+        // Debounce helper - waits for user to stop typing
+        function debounce(fn, delay = 150) {
+            let timer;
+            return function(...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        // Set input validation state
+        function setInputState(input, state) {
+            input.classList.remove('valid', 'invalid');
+            if (state === 'valid') input.classList.add('valid');
+            else if (state === 'invalid') input.classList.add('invalid');
+        }
+
+        // Track which input is being edited to avoid circular updates
+        let updatingFrom = null;
+
+        // ============================================================
+        // Matula Number <-> Tree Sync
+        // ============================================================
+
+        function updateFromNumber() {
+            if (updatingFrom === 'tree') return;
+
+            const input = document.getElementById('matula-input');
+            const treeInput = document.getElementById('tree-input');
+            const n = parseInt(input.value);
+
+            if (n < 1 || isNaN(n) || n > 100000) {
+                setInputState(input, 'invalid');
+                return;
+            }
+
+            try {
+                const tree = Matula.integerToTree(n);
+                const treeStr = Matula.treeToString(tree);
+
+                setInputState(input, 'valid');
+
+                // Update tree input (without triggering its handler)
+                updatingFrom = 'number';
+                treeInput.value = treeStr;
+                setInputState(treeInput, 'valid');
+                updatingFrom = null;
+
+                // Render visualization
+                renderVisualization(tree, n);
+            } catch (e) {
+                setInputState(input, 'invalid');
+            }
+        }
+
+        function updateFromTree() {
+            if (updatingFrom === 'number') return;
+
+            const input = document.getElementById('tree-input');
+            const matulaInput = document.getElementById('matula-input');
+            const treeStr = input.value.trim();
+
+            if (!treeStr) {
+                setInputState(input, '');
+                return;
+            }
+
+            try {
+                const tree = Matula.stringToTree(treeStr);
+                const n = Matula.treeToInteger(tree);
+
+                setInputState(input, 'valid');
+
+                // Update number input (without triggering its handler)
+                updatingFrom = 'tree';
+                matulaInput.value = n;
+                setInputState(matulaInput, 'valid');
+                updatingFrom = null;
+
+                // Render visualization
+                renderVisualization(tree, n);
+            } catch (e) {
+                setInputState(input, 'invalid');
+            }
+        }
+
+        function renderVisualization(tree, n) {
+            const container = document.getElementById('visualization-area');
+            const treeStr = Matula.treeToString(tree);
+
+            Visualization.renderTree(tree, container, {
+                showLabels: true,
+                colorByDepth: Matula.isPrime(n),
+                redLevel: 1
+            });
+
+            const info = document.getElementById('result-info');
+            info.innerHTML = `
+                <strong>Matula:</strong> ${n} |
+                <strong>Tree:</strong> ${treeStr} |
+                <strong>Depth:</strong> ${Matula.treeDepth(tree)} |
+                <strong>Size:</strong> ${Matula.treeSize(tree)} nodes |
+                <strong>Prime:</strong> ${Matula.isPrime(n) ? 'Yes (connected)' : 'No (disconnected)'}
+            `;
+        }
+
+        // ============================================================
+        // Graph DSL
+        // ============================================================
+
+        function updateFromDSL() {
+            const input = document.getElementById('dsl-input');
+            const expr = input.value.trim();
+            const resultDiv = document.getElementById('dsl-result');
+
+            if (!expr) {
+                setInputState(input, '');
+                resultDiv.innerHTML = '<span style="color: #999">Enter a graph expression above</span>';
+                return;
+            }
+
+            try {
+                const result = Encoding.buildAndEncode(expr);
+                const g = result.graph;
+                const matula = result.matula;
+                const tree = Matula.integerToTree(matula);
+
+                setInputState(input, 'valid');
+
+                resultDiv.innerHTML = `
+                    <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+                        <div>
+                            <strong>Graph</strong> (${g.n} vertices, ${Graph.numEdges(g)} edges)
+                            <div id="dsl-graph" style="margin-top: 10px;"></div>
+                        </div>
+                        <div style="font-size: 24px; align-self: center;">→</div>
+                        <div>
+                            <strong>Matula ${matula}</strong>
+                            <div id="dsl-tree" style="margin-top: 10px;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; font-family: monospace;">
+                        <strong>Tree:</strong> ${Matula.treeToString(tree)} |
+                        <strong>Connected:</strong> ${Graph.isConnected(g)}
+                    </div>
+                `;
+
+                Visualization.renderGraph(g, document.getElementById('dsl-graph'), {
+                    width: 180,
+                    height: 180,
+                    nodeRadius: 12
+                });
+
+                Visualization.renderTree(tree, document.getElementById('dsl-tree'), {
+                    showLabels: true,
+                    colorByDepth: true,
+                    redLevel: 1
+                });
+            } catch (e) {
+                setInputState(input, 'invalid');
+                resultDiv.innerHTML = `<span style="color: #c62828;">Error: ${e.message}</span>`;
+            }
+        }
+
+        // ============================================================
+        // Block-Cut Decomposition Examples
+        // ============================================================
+
+        // Convert vertex number to letter label (0 -> A, 1 -> B, etc.)
+        function vertexLabel(n) {
+            return String.fromCharCode(65 + n); // 65 = 'A'
+        }
+
+        const BLOCK_EXAMPLES = {
+            path: {
+                name: 'Path P₄',
+                graph: () => Graph.path(4),
+                description: 'A path has 3 trivial blocks (each edge is a bridge). Vertices B and C are cut vertices — removing either disconnects the path.'
+            },
+            triangle: {
+                name: 'Triangle K₃',
+                graph: () => Graph.complete(3),
+                description: 'A triangle is a single 2-connected block with no cut vertices. Remove any vertex and it stays connected.'
+            },
+            bowtie: {
+                name: 'Bowtie',
+                graph: () => {
+                    // Two triangles sharing vertex 0
+                    const g = Graph.create(5);
+                    Graph.addEdge(g, 0, 1); Graph.addEdge(g, 1, 2); Graph.addEdge(g, 2, 0);
+                    Graph.addEdge(g, 0, 3); Graph.addEdge(g, 3, 4); Graph.addEdge(g, 4, 0);
+                    return g;
+                },
+                description: 'Two triangles sharing vertex A. Vertex A is a cut vertex — removing it splits the graph into two separate triangles.'
+            },
+            lollipop: {
+                name: 'Lollipop',
+                graph: () => {
+                    // Triangle + path attached
+                    const g = Graph.create(5);
+                    Graph.addEdge(g, 0, 1); Graph.addEdge(g, 1, 2); Graph.addEdge(g, 2, 0); // triangle
+                    Graph.addEdge(g, 2, 3); Graph.addEdge(g, 3, 4); // path
+                    return g;
+                },
+                description: 'A triangle (A-B-C) with a path attached. Vertices C and D are cut vertices. The triangle is one 2-connected block; each edge of the tail is a trivial block.'
+            },
+            barbell: {
+                name: 'Barbell',
+                graph: () => {
+                    // Two triangles connected by an edge
+                    const g = Graph.create(6);
+                    Graph.addEdge(g, 0, 1); Graph.addEdge(g, 1, 2); Graph.addEdge(g, 2, 0); // triangle 1
+                    Graph.addEdge(g, 2, 3); // bridge edge
+                    Graph.addEdge(g, 3, 4); Graph.addEdge(g, 4, 5); Graph.addEdge(g, 5, 3); // triangle 2
+                    return g;
+                },
+                description: 'Two triangles connected by edge C-D. Three blocks: two 2-connected triangles and one trivial bridge. Vertices C and D are cut vertices.'
+            }
+        };
+
+        function showBlockExample(exampleKey) {
+            const example = BLOCK_EXAMPLES[exampleKey];
+            const container = document.getElementById('block-decomposition');
+            const g = example.graph();
+
+            // Find cut vertices and blocks
+            const cutVertices = Graph.findArticulationPoints(g);
+            const blocks = Graph.findBlocks(g);
+
+            // Format cut vertices as letters
+            const cutLabels = cutVertices.map(v => vertexLabel(v)).join(', ');
+
+            container.innerHTML = `
+                <div style="display: flex; gap: 30px; flex-wrap: wrap; align-items: flex-start;">
+                    <div>
+                        <strong>Graph</strong> <span style="font-size:0.8em;color:#888">(red = cut vertex)</span>
+                        <div id="block-graph" style="margin-top: 10px;"></div>
+                    </div>
+                    <div style="flex: 1; min-width: 250px;">
+                        <strong>Decomposition</strong>
+                        <div style="margin-top: 10px; padding: 15px; background: #f5f5f5; border-radius: 5px; font-size: 0.9em;">
+                            <div><strong>Blocks:</strong> ${blocks.length}</div>
+                            <div><strong>Cut vertices:</strong> ${cutVertices.length > 0 ? cutLabels : 'none'}</div>
+                            <div style="margin-top: 10px; color: var(--text-muted);">${example.description}</div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <strong>Block-Cut Tree Structure:</strong>
+                            <pre style="margin-top: 5px; font-size: 0.85em;">${generateBlockCutAscii(blocks, cutVertices)}</pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Render graph with cut vertices highlighted and letter labels
+            Visualization.renderGraph(g, document.getElementById('block-graph'), {
+                width: 200,
+                height: 200,
+                nodeRadius: 14,
+                highlightVertices: new Set(cutVertices),
+                labelFn: vertexLabel
+            });
+        }
+
+        function generateBlockCutAscii(blocks, cutVertices) {
+            if (blocks.length === 0) return '(empty graph)';
+            if (blocks.length === 1) return `Block 1: single 2-connected component\n(no cut vertices)`;
+
+            let ascii = '';
+            blocks.forEach((block, i) => {
+                const vertices = [...new Set(block.flat())].sort((a,b) => a-b);
+                const isCut = v => cutVertices.includes(v);
+                const vertexStr = vertices.map(v => isCut(v) ? `[${vertexLabel(v)}]` : vertexLabel(v)).join(', ');
+                ascii += `Block ${i + 1}: {${vertexStr}}\n`;
+            });
+            ascii += `\n[X] = cut vertex`;
+            return ascii;
+        }
+
+        // ============================================================
+        // Full Decomposition Tool
+        // ============================================================
+
+        function updateDecomposition() {
+            const input = document.getElementById('decomp-input');
+            const expr = input.value.trim();
+            const resultDiv = document.getElementById('decomp-result');
+
+            if (!expr) {
+                setInputState(input, '');
+                resultDiv.innerHTML = '<span style="color: #999">Enter a graph expression above</span>';
+                return;
+            }
+
+            try {
+                const g = Encoding.parseDSL(expr);
+                const matula = Encoding.encode(g);
+                const tree = Matula.integerToTree(matula);
+                const cutVertices = Graph.findArticulationPoints(g);
+                const blocks = Graph.findBlocks(g);
+                const isConn = Graph.isConnected(g);
+
+                // Format cut vertices as letters
+                const cutLabels = cutVertices.map(v => vertexLabel(v)).join(', ');
+
+                setInputState(input, 'valid');
+
+                resultDiv.innerHTML = `
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+                        <div>
+                            <strong>1. Original Graph</strong>
+                            <div id="decomp-graph" style="margin-top: 10px;"></div>
+                        </div>
+                        <div style="font-size: 20px; align-self: center;">→</div>
+                        <div style="min-width: 200px;">
+                            <strong>2. Topology</strong>
+                            <div style="margin-top: 10px; padding: 15px; background: #fff3e0; border-radius: 5px; font-size: 0.85em;">
+                                <div><strong>Connected:</strong> ${isConn ? 'Yes' : 'No'}</div>
+                                <div><strong>Blocks:</strong> ${blocks.length}</div>
+                                <div><strong>Cut vertices:</strong> ${cutVertices.length > 0 ? cutLabels : 'none'}</div>
+                                <div style="margin-top: 8px; font-style: italic;">
+                                    ${blocks.length === 1 ? 'Single block (2-connected)' :
+                                      cutVertices.length === 1 ? 'Star topology (blocks share one cut)' :
+                                      'Path/tree topology'}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size: 20px; align-self: center;">→</div>
+                        <div style="min-width: 200px;">
+                            <strong>3. Construction</strong>
+                            <div style="margin-top: 10px; padding: 15px; background: #e3f2fd; border-radius: 5px; font-size: 0.85em;">
+                                ${blocks.map((block, i) => {
+                                    const verts = [...new Set(block.flat())].sort((a,b) => a-b);
+                                    const vertLabels = verts.map(v => vertexLabel(v)).join(', ');
+                                    return `<div>Block ${i+1}: {${vertLabels}}</div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                        <div style="font-size: 20px; align-self: center;">→</div>
+                        <div>
+                            <strong>4. Matula ${matula}</strong>
+                            <div id="decomp-tree" style="margin-top: 10px;"></div>
+                            <div style="font-family: monospace; font-size: 0.85em; margin-top: 5px;">
+                                ${Matula.treeToString(tree)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                Visualization.renderGraph(g, document.getElementById('decomp-graph'), {
+                    width: 160,
+                    height: 160,
+                    nodeRadius: 12,
+                    labelFn: vertexLabel,
+                    highlightVertices: new Set(cutVertices)
+                });
+
+                Visualization.renderTree(tree, document.getElementById('decomp-tree'), {
+                    showLabels: true,
+                    colorByDepth: true,
+                    redLevel: 1
+                });
+
+            } catch (e) {
+                setInputState(input, 'invalid');
+                resultDiv.innerHTML = `<span style="color: #c62828;">Error: ${e.message}</span>`;
+            }
+        }
+
+        // ============================================================
+        // Event Listeners
+        // ============================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const matulaInput = document.getElementById('matula-input');
+            const treeInput = document.getElementById('tree-input');
+            const dslInput = document.getElementById('dsl-input');
+            const blockSelect = document.getElementById('block-example-select');
+            const decompInput = document.getElementById('decomp-input');
+
+            // Debounced update functions
+            const debouncedNumber = debounce(updateFromNumber, 200);
+            const debouncedTree = debounce(updateFromTree, 200);
+            const debouncedDSL = debounce(updateFromDSL, 250);
+            const debouncedDecomp = debounce(updateDecomposition, 250);
+
+            // Auto-update on input
+            matulaInput.addEventListener('input', debouncedNumber);
+            treeInput.addEventListener('input', debouncedTree);
+            dslInput.addEventListener('input', debouncedDSL);
+            decompInput.addEventListener('input', debouncedDecomp);
+
+            // Also update immediately on blur (leaving field)
+            matulaInput.addEventListener('blur', updateFromNumber);
+            treeInput.addEventListener('blur', updateFromTree);
+            dslInput.addEventListener('blur', updateFromDSL);
+            decompInput.addEventListener('blur', updateDecomposition);
+
+            // Block example selector
+            blockSelect.addEventListener('change', () => {
+                showBlockExample(blockSelect.value);
+            });
+
+            // Initialize
+            updateFromNumber();
+            updateFromDSL();
+            showBlockExample('path');
+            updateDecomposition();
+        });
+    </script>
+</body>
+</html>

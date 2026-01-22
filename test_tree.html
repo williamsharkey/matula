@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tree Visualization Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .test { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        h3 { margin-top: 0; }
+        .info { font-family: monospace; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Tree Visualization Test</h1>
+
+    <div class="test">
+        <h3>Matula 1 (single leaf)</h3>
+        <div class="info">Tree: o | Expected: 1 node</div>
+        <div id="tree1"></div>
+    </div>
+
+    <div class="test">
+        <h3>Matula 2 = prime(1) = (o)</h3>
+        <div class="info">Tree: (o) | Expected: 2 nodes (root + 1 leaf child)</div>
+        <div id="tree2"></div>
+    </div>
+
+    <div class="test">
+        <h3>Matula 4 = 2 × 2 = (o o)</h3>
+        <div class="info">Tree: (o o) | Expected: 3 nodes (root + 2 leaf children)</div>
+        <div id="tree4"></div>
+    </div>
+
+    <div class="test">
+        <h3>Matula 6 = 2 × 3 = (o (o))</h3>
+        <div class="info">Tree: (o (o)) | Expected: 4 nodes</div>
+        <div id="tree6"></div>
+    </div>
+
+    <div class="test">
+        <h3>Matula 8 = 2 × 2 × 2 = (o o o)</h3>
+        <div class="info">Tree: (o o o) | Expected: 4 nodes (root + 3 leaf children)</div>
+        <div id="tree8"></div>
+    </div>
+
+    <div class="test">
+        <h3>Matula 14 = K₃ construction = (o (o o))</h3>
+        <div class="info">Tree: (o (o o)) | Expected: 4 nodes</div>
+        <div id="tree14"></div>
+    </div>
+
+    <script src="lib/matula.js"></script>
+    <script src="lib/graph.js"></script>
+    <script src="lib/encoding.js"></script>
+    <script src="lib/visualization.js"></script>
+    <script>
+        const testCases = [1, 2, 4, 6, 8, 14];
+
+        testCases.forEach(n => {
+            const tree = Matula.integerToTree(n);
+            const container = document.getElementById('tree' + n);
+
+            console.log(`Matula ${n}:`, Matula.treeToString(tree), 'size:', Matula.treeSize(tree));
+
+            Visualization.renderTree(tree, container, {
+                showLabels: true
+            });
+        });
+    </script>
+</body>
+</html>

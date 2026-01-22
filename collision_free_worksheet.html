@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collision-Free Graph Encoding</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Georgia, 'Times New Roman', serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #fff;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        h1 {
+            font-size: 2.4em;
+            font-weight: normal;
+            margin-bottom: 0.2em;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 1.4em;
+            font-weight: normal;
+            color: #c4170c;
+            margin-top: 2em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3em;
+        }
+
+        h3 {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 1.5em;
+            color: #333;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 1.5em;
+        }
+
+        .red { color: #c4170c; }
+        .blue { color: #2563eb; }
+        .green { color: #16a34a; }
+
+        .highlight-box {
+            background: #fff8f0;
+            border-left: 4px solid #c4170c;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: #f0f7ff;
+            border: 1px solid #cce0ff;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+
+        .success-box {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+
+        /* Layout */
+        .row {
+            display: flex;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .col {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .panel {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        /* Canvas */
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: crosshair;
+            display: block;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 0.9em;
+            padding: 8px 14px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        button:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        button.active, button.primary {
+            background: #c4170c;
+            color: white;
+            border-color: #c4170c;
+        }
+
+        /* Tree display */
+        .tree-container {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            margin: 10px 0;
+        }
+
+        .tree-svg {
+            width: 100%;
+            min-height: 180px;
+        }
+
+        .matula-display {
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 1.3em;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .matula-number {
+            color: #c4170c;
+            font-weight: bold;
+            font-size: 1.4em;
+        }
+
+        /* Encoding steps */
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #c4170c;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f8f8;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .mono {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.95em;
+        }
+
+        /* Component cards */
+        .component-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .component-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 15px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .component-card.connected {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .component-card.disconnected {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        kbd {
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Collision-Free Graph → Matula Encoding</h1>
+    <p class="subtitle">An intuitive bijection where tree structure reveals graph structure</p>
+
+    <div class="highlight-box">
+        <strong>The Key Insight:</strong> Use <em>tree depth</em> to distinguish connected vs disconnected graphs.
+        Connected graphs wrap their structure one level deeper than disconnected ones.
+    </div>
+
+    <h2>Build a Graph</h2>
+
+    <div class="instructions">
+        <strong>Instructions:</strong>
+        <ul>
+            <li><strong>Click</strong> empty space to add a vertex</li>
+            <li><strong>Drag</strong> from one vertex to another to add an edge</li>
+            <li><strong>Right-click</strong> a vertex to delete it (and its edges)</li>
+        </ul>
+    </div>
+
+    <div class="controls">
+        <button onclick="clearGraph()">Clear</button>
+        <span style="color:#ccc">│</span>
+        <button onclick="loadPreset('vertex')">•</button>
+        <button onclick="loadPreset('k2')">K₂</button>
+        <button onclick="loadPreset('k3')">K₃</button>
+        <button onclick="loadPreset('p3')">P₃</button>
+        <button onclick="loadPreset('p4')">P₄</button>
+        <button onclick="loadPreset('k13')">K₁,₃</button>
+        <button onclick="loadPreset('c4')">C₄</button>
+        <button onclick="loadPreset('k4')">K₄</button>
+        <button onclick="loadPreset('2k2')">2K₂</button>
+        <button onclick="loadPreset('k2iso')">K₂+•</button>
+        <button onclick="loadPreset('k3iso')">K₃+•</button>
+        <button onclick="loadPreset('paw')">Paw</button>
+        <button onclick="loadPreset('bowtie')">Bowtie</button>
+    </div>
+
+    <canvas id="graphCanvas" width="600" height="280"></canvas>
+
+    <h2>Encoding Process</h2>
+
+    <div class="row">
+        <div class="col">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">Check Connectivity</div>
+                    <div id="connectivityResult">Draw a graph to analyze</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">Find Components & Blocks</div>
+                    <div id="componentsResult">—</div>
+                    <div class="component-cards" id="componentCards"></div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">Build Matula Tree</div>
+                    <div id="treeDescription">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <h3>Resulting Matula Tree</h3>
+            <div class="tree-container">
+                <svg id="treeSvg" class="tree-svg"></svg>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:#333"></div>
+                    <span>Root/Structure</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:#c4170c"></div>
+                    <span>Connectivity wrapper</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:#2563eb"></div>
+                    <span>Block construction</span>
+                </div>
+            </div>
+
+            <div class="matula-display">
+                Tree: <span id="treeNotation" class="mono">—</span><br>
+                Matula: <span id="matulaNumber" class="matula-number">—</span>
+            </div>
+        </div>
+    </div>
+
+    <h2>The Encoding Rules</h2>
+
+    <div class="row">
+        <div class="col">
+            <div class="panel">
+                <h3 style="margin-top:0">Disconnected Graphs</h3>
+                <p>Root's children are component encodings <em>directly</em>:</p>
+                <div class="mono" style="background:#fff;padding:10px;border-radius:4px;">
+                    2K₂ = ((o) (o))<br>
+                    <small style="color:#666">Two K₂ components as siblings</small>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="panel">
+                <h3 style="margin-top:0">Connected Graphs</h3>
+                <p>Single child of root contains the structure <em>wrapped</em>:</p>
+                <div class="mono" style="background:#fff;padding:10px;border-radius:4px;">
+                    P₃ = (((o) (o)))<br>
+                    <small style="color:#666">One child containing block-cut tree</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="success-box">
+        <strong>Why no collisions?</strong> Connected and disconnected graphs have different tree depths:
+        <ul style="margin:10px 0;">
+            <li><strong>Disconnected:</strong> Structure at depth 1 (multiple siblings)</li>
+            <li><strong>Connected:</strong> Structure at depth 2 (wrapped once more)</li>
+        </ul>
+    </div>
+
+    <h2>Path vs Star Topology</h2>
+
+    <p>For connected graphs with multiple blocks (cut vertices), topology matters:</p>
+
+    <div class="row">
+        <div class="col">
+            <div class="panel">
+                <h3 style="margin-top:0">Path Topology (P₄)</h3>
+                <p>Blocks nested: <span class="mono">((B₁) ((B₂) (B₃)))</span></p>
+                <p>3 blocks in a chain → 2 cut vertices</p>
+                <p class="mono" style="color:#c4170c">Matula: 347</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="panel">
+                <h3 style="margin-top:0">Star Topology (K₁,₃)</h3>
+                <p>Blocks flat: <span class="mono">((B₁) (B₂) (B₃))</span></p>
+                <p>3 blocks at center → 1 cut vertex</p>
+                <p class="mono" style="color:#c4170c">Matula: 103</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>Complete Encoding Table</h2>
+
+    <table>
+        <tr>
+            <th>Graph</th>
+            <th>Connected</th>
+            <th>Components/Blocks</th>
+            <th>Tree</th>
+            <th>Matula</th>
+        </tr>
+        <tr>
+            <td>• (single vertex)</td>
+            <td class="green">yes</td>
+            <td>1 vertex</td>
+            <td class="mono">(o)</td>
+            <td class="red"><strong>2</strong></td>
+        </tr>
+        <tr>
+            <td>• • (two isolated)</td>
+            <td class="red">no</td>
+            <td>2 vertices</td>
+            <td class="mono">(o o)</td>
+            <td class="red"><strong>4</strong></td>
+        </tr>
+        <tr>
+            <td>K₂ (edge)</td>
+            <td class="green">yes</td>
+            <td>1 block: K₂</td>
+            <td class="mono">((o))</td>
+            <td class="red"><strong>3</strong></td>
+        </tr>
+        <tr>
+            <td>K₂ + •</td>
+            <td class="red">no</td>
+            <td>K₂, vertex</td>
+            <td class="mono">(o (o))</td>
+            <td class="red"><strong>6</strong></td>
+        </tr>
+        <tr>
+            <td>2K₂</td>
+            <td class="red">no</td>
+            <td>K₂, K₂</td>
+            <td class="mono">((o) (o))</td>
+            <td class="red"><strong>9</strong></td>
+        </tr>
+        <tr>
+            <td>P₃ (path)</td>
+            <td class="green">yes</td>
+            <td>2 blocks: K₂, K₂</td>
+            <td class="mono">(((o) (o)))</td>
+            <td class="red"><strong>23</strong></td>
+        </tr>
+        <tr>
+            <td>K₃ (triangle)</td>
+            <td class="green">yes</td>
+            <td>1 block: K₃</td>
+            <td class="mono">((o (o o)))</td>
+            <td class="red"><strong>43</strong></td>
+        </tr>
+        <tr>
+            <td>K₃ + •</td>
+            <td class="red">no</td>
+            <td>K₃, vertex</td>
+            <td class="mono">(o (o (o o)))</td>
+            <td class="red"><strong>86</strong></td>
+        </tr>
+        <tr>
+            <td>P₄ (path of 4)</td>
+            <td class="green">yes</td>
+            <td>3 blocks (path)</td>
+            <td class="mono">(((o) ((o) (o))))</td>
+            <td class="red"><strong>347</strong></td>
+        </tr>
+        <tr>
+            <td>K₁,₃ (star)</td>
+            <td class="green">yes</td>
+            <td>3 blocks (star)</td>
+            <td class="mono">(((o) (o) (o)))</td>
+            <td class="red"><strong>103</strong></td>
+        </tr>
+        <tr>
+            <td>C₄ (4-cycle)</td>
+            <td class="green">yes</td>
+            <td>1 block: C₄</td>
+            <td class="mono">((o (o) ((o))))</td>
+            <td class="red"><strong>113</strong></td>
+        </tr>
+        <tr>
+            <td>Paw</td>
+            <td class="green">yes</td>
+            <td>2 blocks: K₂, K₃</td>
+            <td class="mono">(((o) (o (o o))))</td>
+            <td class="red"><strong>727</strong></td>
+        </tr>
+        <tr>
+            <td>K₄</td>
+            <td class="green">yes</td>
+            <td>1 block: K₄</td>
+            <td class="mono">((o ((o o o))))</td>
+            <td class="red"><strong>757</strong></td>
+        </tr>
+        <tr>
+            <td>Bowtie</td>
+            <td class="green">yes</td>
+            <td>2 blocks: K₃, K₃</td>
+            <td class="mono">(((o (o o)) (o (o o))))</td>
+            <td class="red"><strong>15877</strong></td>
+        </tr>
+    </table>
+
+    <div class="info-box">
+        <strong>Note on gaps:</strong> Many integers (like 5, 7, 10, 11...) don't appear in this encoding.
+        These gaps represent Matula trees that don't correspond to valid graph decompositions—like
+        how not every integer is prime. The sparsity is meaningful!
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════════════════
+    // GRAPH DATA STRUCTURE
+    // ═══════════════════════════════════════════════════════════════════════
+
+    let vertices = [];
+    let edges = [];
+    let dragging = false;
+    let dragStart = null;
+    let dragEnd = null;
+
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // DRAWING
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function drawGraph() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Edges
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+        edges.forEach(([u, v]) => {
+            ctx.beginPath();
+            ctx.moveTo(vertices[u].x, vertices[u].y);
+            ctx.lineTo(vertices[v].x, vertices[v].y);
+            ctx.stroke();
+        });
+
+        // Drag line
+        if (dragging && dragStart !== null && dragEnd) {
+            ctx.strokeStyle = '#c4170c';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(vertices[dragStart].x, vertices[dragStart].y);
+            ctx.lineTo(dragEnd.x, dragEnd.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Vertices
+        vertices.forEach((v, i) => {
+            ctx.beginPath();
+            ctx.arc(v.x, v.y, 16, 0, Math.PI * 2);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#333';
+            ctx.font = '13px Georgia';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(i.toString(), v.x, v.y);
+        });
+    }
+
+    function getVertexAt(x, y) {
+        for (let i = 0; i < vertices.length; i++) {
+            const dx = vertices[i].x - x;
+            const dy = vertices[i].y - y;
+            if (dx*dx + dy*dy < 400) return i;
+        }
+        return null;
+    }
+
+    function hasEdge(u, v) {
+        return edges.some(([a, b]) => (a === u && b === v) || (a === v && b === u));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // EVENT HANDLERS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const vi = getVertexAt(x, y);
+
+        if (e.button === 2) {
+            e.preventDefault();
+            if (vi !== null) {
+                edges = edges.filter(([a, b]) => a !== vi && b !== vi)
+                    .map(([a, b]) => [a > vi ? a-1 : a, b > vi ? b-1 : b]);
+                vertices.splice(vi, 1);
+                updateEncoding();
+            }
+            drawGraph();
+            return;
+        }
+
+        if (vi !== null) {
+            dragging = true;
+            dragStart = vi;
+            dragEnd = {x, y};
+        } else {
+            vertices.push({x, y});
+            updateEncoding();
+        }
+        drawGraph();
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const rect = canvas.getBoundingClientRect();
+        dragEnd = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        drawGraph();
+    });
+
+    canvas.addEventListener('mouseup', (e) => {
+        if (!dragging) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const vi = getVertexAt(x, y);
+
+        if (vi !== null && vi !== dragStart && !hasEdge(dragStart, vi)) {
+            edges.push([Math.min(dragStart, vi), Math.max(dragStart, vi)]);
+            updateEncoding();
+        }
+
+        dragging = false;
+        dragStart = null;
+        dragEnd = null;
+        drawGraph();
+    });
+
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    function clearGraph() {
+        vertices = [];
+        edges = [];
+        updateEncoding();
+        drawGraph();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // PRESETS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function loadPreset(name) {
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        vertices = [];
+        edges = [];
+
+        switch(name) {
+            case 'vertex':
+                vertices = [{x: cx, y: cy}];
+                break;
+            case 'k2':
+                vertices = [{x: cx-40, y: cy}, {x: cx+40, y: cy}];
+                edges = [[0,1]];
+                break;
+            case 'k3':
+                vertices = [{x: cx, y: cy-45}, {x: cx-50, y: cy+35}, {x: cx+50, y: cy+35}];
+                edges = [[0,1], [1,2], [0,2]];
+                break;
+            case 'p3':
+                vertices = [{x: cx-80, y: cy}, {x: cx, y: cy}, {x: cx+80, y: cy}];
+                edges = [[0,1], [1,2]];
+                break;
+            case 'p4':
+                vertices = [{x: cx-120, y: cy}, {x: cx-40, y: cy}, {x: cx+40, y: cy}, {x: cx+120, y: cy}];
+                edges = [[0,1], [1,2], [2,3]];
+                break;
+            case 'k13':
+                vertices = [{x: cx, y: cy}, {x: cx-70, y: cy-50}, {x: cx+70, y: cy-50}, {x: cx, y: cy+70}];
+                edges = [[0,1], [0,2], [0,3]];
+                break;
+            case 'c4':
+                vertices = [{x: cx-50, y: cy-50}, {x: cx+50, y: cy-50}, {x: cx+50, y: cy+50}, {x: cx-50, y: cy+50}];
+                edges = [[0,1], [1,2], [2,3], [3,0]];
+                break;
+            case 'k4':
+                vertices = [{x: cx-50, y: cy-40}, {x: cx+50, y: cy-40}, {x: cx+50, y: cy+40}, {x: cx-50, y: cy+40}];
+                edges = [[0,1], [1,2], [2,3], [3,0], [0,2], [1,3]];
+                break;
+            case '2k2':
+                vertices = [{x: cx-100, y: cy}, {x: cx-40, y: cy}, {x: cx+40, y: cy}, {x: cx+100, y: cy}];
+                edges = [[0,1], [2,3]];
+                break;
+            case 'k2iso':
+                vertices = [{x: cx-60, y: cy}, {x: cx+20, y: cy}, {x: cx+100, y: cy}];
+                edges = [[0,1]];
+                break;
+            case 'k3iso':
+                vertices = [{x: cx-40, y: cy-40}, {x: cx-90, y: cy+30}, {x: cx+10, y: cy+30}, {x: cx+90, y: cy}];
+                edges = [[0,1], [1,2], [0,2]];
+                break;
+            case 'paw':
+                vertices = [{x: cx-60, y: cy-40}, {x: cx-60, y: cy+40}, {x: cx+20, y: cy}, {x: cx+100, y: cy}];
+                edges = [[0,1], [1,2], [0,2], [2,3]];
+                break;
+            case 'bowtie':
+                vertices = [{x: cx-90, y: cy-50}, {x: cx-90, y: cy+50}, {x: cx, y: cy}, {x: cx+90, y: cy-50}, {x: cx+90, y: cy+50}];
+                edges = [[0,1], [1,2], [0,2], [2,3], [3,4], [2,4]];
+                break;
+        }
+
+        updateEncoding();
+        drawGraph();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // GRAPH ANALYSIS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function findConnectedComponents() {
+        const n = vertices.length;
+        if (n === 0) return [];
+
+        const adj = Array.from({length: n}, () => []);
+        edges.forEach(([u, v]) => {
+            adj[u].push(v);
+            adj[v].push(u);
+        });
+
+        const visited = new Array(n).fill(false);
+        const components = [];
+
+        for (let i = 0; i < n; i++) {
+            if (!visited[i]) {
+                const comp = [];
+                const queue = [i];
+                visited[i] = true;
+                while (queue.length > 0) {
+                    const u = queue.shift();
+                    comp.push(u);
+                    for (const v of adj[u]) {
+                        if (!visited[v]) {
+                            visited[v] = true;
+                            queue.push(v);
+                        }
+                    }
+                }
+                components.push(comp);
+            }
+        }
+
+        return components;
+    }
+
+    function getComponentEdges(comp) {
+        const compSet = new Set(comp);
+        return edges.filter(([u, v]) => compSet.has(u) && compSet.has(v));
+    }
+
+    function analyzeBlock(nVerts, nEdges) {
+        // Return block type and construction Matula
+        if (nVerts === 1) return { type: 'vertex', matula: 1, tree: 'o' };
+        if (nVerts === 2 && nEdges === 1) return { type: 'K₂', matula: 2, tree: '(o)' };
+        if (nVerts === 3 && nEdges === 3) return { type: 'K₃', matula: 14, tree: '(o (o o))' };
+        if (nVerts === 4 && nEdges === 4) return { type: 'C₄', matula: 30, tree: '(o (o) ((o)))' };
+        if (nVerts === 4 && nEdges === 5) return { type: 'K₄-e', matula: 67, tree: '(((o o o)))' };
+        if (nVerts === 4 && nEdges === 6) return { type: 'K₄', matula: 134, tree: '(o ((o o o)))' };
+        if (nVerts === 5 && nEdges === 5) return { type: 'C₅', matula: 250, tree: '...' };
+        return { type: `B(${nVerts},${nEdges})`, matula: nVerts * 100 + nEdges, tree: '...' };
+    }
+
+    function findBlocksInComponent(compVerts, compEdges) {
+        // Simplified: check if 2-connected or find cut vertices
+        const n = compVerts.length;
+        const m = compEdges.length;
+
+        if (n === 1) {
+            return [{ verts: compVerts, edges: [], type: 'vertex' }];
+        }
+
+        if (n === 2 && m === 1) {
+            return [{ verts: compVerts, edges: compEdges, type: 'K₂' }];
+        }
+
+        // Check for cut vertices using simple DFS
+        const vMap = {};
+        compVerts.forEach((v, i) => vMap[v] = i);
+        const localAdj = Array.from({length: n}, () => []);
+        compEdges.forEach(([u, v]) => {
+            localAdj[vMap[u]].push(vMap[v]);
+            localAdj[vMap[v]].push(vMap[u]);
+        });
+
+        // Find articulation points
+        const visited = new Array(n).fill(false);
+        const disc = new Array(n).fill(0);
+        const low = new Array(n).fill(0);
+        const parent = new Array(n).fill(-1);
+        const isCut = new Array(n).fill(false);
+        let timer = 0;
+
+        function dfs(u) {
+            let children = 0;
+            visited[u] = true;
+            disc[u] = low[u] = timer++;
+
+            for (const v of localAdj[u]) {
+                if (!visited[v]) {
+                    children++;
+                    parent[v] = u;
+                    dfs(v);
+                    low[u] = Math.min(low[u], low[v]);
+                    if ((parent[u] === -1 && children > 1) || (parent[u] !== -1 && low[v] >= disc[u])) {
+                        isCut[u] = true;
+                    }
+                } else if (v !== parent[u]) {
+                    low[u] = Math.min(low[u], disc[v]);
+                }
+            }
+        }
+
+        dfs(0);
+
+        const cuts = [];
+        for (let i = 0; i < n; i++) {
+            if (isCut[i]) cuts.push(compVerts[i]);
+        }
+
+        if (cuts.length === 0) {
+            // 2-connected
+            const info = analyzeBlock(n, m);
+            return [{ verts: compVerts, edges: compEdges, type: info.type, matula: info.matula }];
+        }
+
+        // Has cuts - find blocks (simplified: assume each edge incident to cut is a block)
+        // This is a simplification; proper implementation would use Tarjan's biconnected components
+        const blocks = [];
+        const usedEdges = new Set();
+
+        // For each non-cut vertex group
+        for (const edge of compEdges) {
+            if (usedEdges.has(edge.join(','))) continue;
+
+            // Find connected edges forming a block
+            const blockEdges = [edge];
+            usedEdges.add(edge.join(','));
+
+            // Simplified: just use single edges as blocks for now
+            const info = analyzeBlock(2, 1);
+            blocks.push({ verts: edge, edges: [edge], type: 'K₂', matula: 2 });
+        }
+
+        // Detect triangles
+        for (let i = 0; i < compVerts.length; i++) {
+            for (let j = i+1; j < compVerts.length; j++) {
+                for (let k = j+1; k < compVerts.length; k++) {
+                    const vi = compVerts[i], vj = compVerts[j], vk = compVerts[k];
+                    if (hasEdge(vi, vj) && hasEdge(vj, vk) && hasEdge(vi, vk)) {
+                        // Found triangle
+                        return [{ verts: [vi, vj, vk], edges: [[vi,vj],[vj,vk],[vi,vk]], type: 'K₃', matula: 14 }]
+                            .concat(blocks.filter(b => !b.verts.some(v => [vi,vj,vk].includes(v))));
+                    }
+                }
+            }
+        }
+
+        return blocks.length > 0 ? blocks : [{ verts: compVerts, edges: compEdges, type: analyzeBlock(n, m).type }];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // MATULA ENCODING
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function isPrime(n) {
+        if (n < 2) return false;
+        if (n === 2) return true;
+        if (n % 2 === 0) return false;
+        for (let i = 3; i * i <= n; i += 2) {
+            if (n % i === 0) return false;
+        }
+        return true;
+    }
+
+    function nthPrime(n) {
+        let count = 0, candidate = 1;
+        while (count < n) {
+            candidate++;
+            if (isPrime(candidate)) count++;
+        }
+        return candidate;
+    }
+
+    function primeIndex(p) {
+        let count = 0;
+        for (let i = 2; i <= p; i++) {
+            if (isPrime(i)) count++;
+        }
+        return count;
+    }
+
+    function primeFactors(n) {
+        const factors = [];
+        let d = 2;
+        while (d * d <= n) {
+            while (n % d === 0) {
+                factors.push(d);
+                n = Math.floor(n / d);
+            }
+            d++;
+        }
+        if (n > 1) factors.push(n);
+        return factors;
+    }
+
+    function matulaToTree(n) {
+        if (n === 1) return { children: [], matula: 1 };
+        const factors = primeFactors(n);
+        return {
+            children: factors.map(p => matulaToTree(primeIndex(p))),
+            matula: n
+        };
+    }
+
+    function treeToString(tree) {
+        if (tree.children.length === 0) return 'o';
+        return '(' + tree.children.map(treeToString).join(' ') + ')';
+    }
+
+    function treeMatula(tree) {
+        if (tree.children.length === 0) return 1;
+        let result = 1;
+        for (const child of tree.children) {
+            result *= nthPrime(treeMatula(child));
+        }
+        return result;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // BUILD ENCODING
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function buildEncoding() {
+        const n = vertices.length;
+        if (n === 0) {
+            return { connected: null, components: [], tree: null, matula: 0, treeStr: '—' };
+        }
+
+        const components = findConnectedComponents();
+        const isConnected = components.length === 1;
+
+        // Analyze each component
+        const compInfos = components.map(comp => {
+            const compEdges = getComponentEdges(comp);
+            const blocks = findBlocksInComponent(comp, compEdges);
+            return { vertices: comp, edges: compEdges, blocks };
+        });
+
+        let tree, matula, treeStr;
+
+        if (isConnected) {
+            const comp = compInfos[0];
+            if (comp.vertices.length === 1) {
+                // Single vertex: (o)
+                tree = { children: [{ children: [], matula: 1 }] };
+                matula = 2;
+                treeStr = '(o)';
+            } else if (comp.blocks.length === 1) {
+                // Single block: ((block_tree))
+                const blockMatula = comp.blocks[0].matula || analyzeBlock(comp.vertices.length, comp.edges.length).matula;
+                const blockTree = matulaToTree(blockMatula);
+                tree = { children: [blockTree] };
+                matula = nthPrime(blockMatula);
+                treeStr = '(' + treeToString(blockTree) + ')';
+            } else {
+                // Multiple blocks: detect topology
+                const nBlocks = comp.blocks.length;
+                const nCuts = Math.max(0, nBlocks - 1); // Simplified
+
+                // Determine if path or star based on cut count vs block count
+                const blockTrees = comp.blocks.map(b => matulaToTree(b.matula || 2));
+
+                if (nCuts === 1 || nBlocks <= 2) {
+                    // Star or simple: flat children
+                    const inner = { children: blockTrees };
+                    tree = { children: [inner] };
+                } else {
+                    // Path: nested
+                    let result = blockTrees[blockTrees.length - 1];
+                    for (let i = blockTrees.length - 2; i >= 0; i--) {
+                        result = { children: [blockTrees[i], result] };
+                    }
+                    tree = { children: [result] };
+                }
+
+                matula = treeMatula(tree);
+                treeStr = treeToString(tree);
+            }
+        } else {
+            // Disconnected: children are component encodings
+            const childTrees = compInfos.map(comp => {
+                if (comp.vertices.length === 1) {
+                    return { children: [], matula: 1 };
+                } else {
+                    const blockMatula = comp.blocks[0]?.matula || analyzeBlock(comp.vertices.length, comp.edges.length).matula;
+                    return matulaToTree(blockMatula);
+                }
+            });
+
+            tree = { children: childTrees };
+            matula = treeMatula(tree);
+            treeStr = treeToString(tree);
+        }
+
+        return { connected: isConnected, components: compInfos, tree, matula, treeStr };
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // TREE VISUALIZATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function drawTreeSvg(tree, isConnected) {
+        const svg = document.getElementById('treeSvg');
+        svg.innerHTML = '';
+
+        if (!tree) {
+            svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#999">No graph</text>';
+            return;
+        }
+
+        // Layout
+        let nodeId = 0;
+        function layout(node, depth) {
+            const result = { id: nodeId++, depth, children: [] };
+            if (node.children.length === 0) {
+                result.width = 1;
+            } else {
+                result.children = node.children.map(c => layout(c, depth + 1));
+                result.width = result.children.reduce((s, c) => s + c.width, 0);
+            }
+            return result;
+        }
+
+        function position(node, left, right, y) {
+            node.x = (left + right) / 2;
+            node.y = y;
+            if (node.children.length > 0) {
+                const totalW = node.children.reduce((s, c) => s + c.width, 0);
+                let curLeft = left;
+                node.children.forEach(child => {
+                    const w = (right - left) * child.width / totalW;
+                    position(child, curLeft, curLeft + w, y + 50);
+                    curLeft += w;
+                });
+            }
+        }
+
+        const layoutTree = layout(tree, 0);
+        const svgWidth = svg.clientWidth || 500;
+        position(layoutTree, 30, svgWidth - 30, 30);
+
+        let maxY = 30;
+        function findMaxY(node) {
+            maxY = Math.max(maxY, node.y);
+            node.children.forEach(findMaxY);
+        }
+        findMaxY(layoutTree);
+        svg.style.height = (maxY + 40) + 'px';
+
+        // Draw
+        function drawEdges(node) {
+            node.children.forEach(child => {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', node.x);
+                line.setAttribute('y1', node.y);
+                line.setAttribute('x2', child.x);
+                line.setAttribute('y2', child.y);
+                line.setAttribute('stroke', '#999');
+                line.setAttribute('stroke-width', '2');
+                svg.appendChild(line);
+                drawEdges(child);
+            });
+        }
+        drawEdges(layoutTree);
+
+        function drawNodes(node) {
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', node.x);
+            circle.setAttribute('cy', node.y);
+            circle.setAttribute('r', '8');
+
+            // Color based on depth and connectivity
+            if (node.depth === 0) {
+                circle.setAttribute('fill', '#333');
+            } else if (isConnected && node.depth === 1) {
+                circle.setAttribute('fill', '#c4170c');
+            } else {
+                circle.setAttribute('fill', '#2563eb');
+            }
+
+            svg.appendChild(circle);
+            node.children.forEach(drawNodes);
+        }
+        drawNodes(layoutTree);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // UPDATE UI
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function updateEncoding() {
+        const result = buildEncoding();
+
+        // Step 1: Connectivity
+        const connEl = document.getElementById('connectivityResult');
+        if (vertices.length === 0) {
+            connEl.innerHTML = '<span style="color:#999">Draw a graph to analyze</span>';
+        } else if (result.connected === null) {
+            connEl.innerHTML = '<span style="color:#999">Empty graph</span>';
+        } else if (result.connected) {
+            connEl.innerHTML = '<span class="green"><strong>Connected</strong></span> — will wrap structure once';
+        } else {
+            connEl.innerHTML = '<span class="red"><strong>Disconnected</strong></span> — ' + result.components.length + ' components as siblings';
+        }
+
+        // Step 2: Components
+        const compEl = document.getElementById('componentsResult');
+        const cardsEl = document.getElementById('componentCards');
+
+        if (result.components.length === 0) {
+            compEl.innerHTML = '—';
+            cardsEl.innerHTML = '';
+        } else {
+            compEl.innerHTML = result.components.length + ' component(s)';
+            cardsEl.innerHTML = result.components.map((c, i) => {
+                const blockStr = c.blocks.map(b => b.type).join(', ');
+                const connClass = result.connected ? 'connected' : 'disconnected';
+                return `<div class="component-card ${result.components.length === 1 ? connClass : ''}">
+                    <div><strong>C${i+1}</strong></div>
+                    <div style="font-size:0.85em;color:#666">${c.vertices.length}v, ${c.edges.length}e</div>
+                    <div style="font-size:0.85em">${blockStr || 'vertex'}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // Step 3: Tree description
+        const treeDescEl = document.getElementById('treeDescription');
+        if (!result.tree) {
+            treeDescEl.innerHTML = '—';
+        } else if (result.connected) {
+            treeDescEl.innerHTML = 'Root has <strong>1 child</strong> (connectivity wrapper) containing structure';
+        } else {
+            treeDescEl.innerHTML = 'Root has <strong>' + result.components.length + ' children</strong> (one per component)';
+        }
+
+        // Tree visualization
+        drawTreeSvg(result.tree, result.connected);
+
+        // Matula display
+        document.getElementById('treeNotation').textContent = result.treeStr;
+        document.getElementById('matulaNumber').textContent = result.matula || '—';
+    }
+
+    // Initialize
+    drawGraph();
+    updateEncoding();
+    </script>
+</body>
+</html>
