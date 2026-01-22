@@ -78,6 +78,12 @@ The construction integer is
 where $\pi$ is the chosen labeling order and the empty product is $1$.
 \end{definition}
 
+\paragraph{Example.}
+For $n=4$, the weights are $1,2,8$, so
+\[
+\mathrm{C}(G,\pi)=c_1+2c_2+8c_3.
+\]
+
 \begin{definition}[Canonical construction integer]
 The canonical construction integer of an unlabeled graph $G$ is
 \[\mathrm{C}(G) = \min_{\pi} \mathrm{C}(G,\pi),\]
@@ -88,11 +94,12 @@ where $\pi$ ranges over all labelings.
 For fixed $n$, the mapping from construction sequences to integers is a bijection.
 \end{proposition}
 
-\begin{theorem}[Canonical construction bijection]
-For each unlabeled graph $G$, the canonical construction integer $\mathrm{C}(G)$
-is well-defined and unique. The mapping that sends $G$ to $\mathrm{C}(G)$ is
-injective on unlabeled graphs, and the mixed-radix encoding provides a decoding
-from integers to construction sequences for each fixed $n$.
+\begin{theorem}[Canonical construction bijection (fixed $n$)]
+For each unlabeled graph $G$ on $n$ vertices, the canonical construction integer
+$\mathrm{C}(G)$ is well-defined and unique. The mapping that sends $G$ to
+$\mathrm{C}(G)$ is injective on unlabeled graphs with $n$ vertices, and the
+mixed-radix encoding provides a decoding from integers to construction sequences
+for each fixed $n$.
 \end{theorem}
 
 \paragraph{Proof sketch.}
@@ -103,17 +110,36 @@ minimum construction integer exists. If two graphs had the same canonical
 integer, then they would share a construction sequence under some labeling,
 which determines the adjacency pattern and hence the isomorphism class.
 
+\paragraph{Remark (global bijection).}
+To make the encoding injective across all sizes, one can prefix the size (or use
+a STOP symbol in a unified mixed-radix grammar). This paper focuses on the fixed
+$n$ encoding and uses size as an external parameter when ordering graphs across
+different sizes.
+
 \section{Matula trees for construction integers}
 Because each construction integer is a nonnegative integer, it corresponds to a
 unique rooted tree under the Matula bijection. This yields a compositional tree
-diagram for the construction grammar of the graph (see Fig.~4).
+diagram for the construction grammar of the graph (see Fig.~1).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{matula-tree.svg}
+    \caption{A Matula tree diagram for a construction integer.}
+\end{figure}
 
 \section{Comparisons and stress tests}
 We contrast the construction bijection with three alternatives:
 canonical adjacency encoding, product invariants over all labelings, and a
 block-cut red-node encoding. We emphasize examples where the orderings diverge
-(e.g., star vs path in Fig.~1, cycle vs matching in Fig.~2, and barbell vs two
-triangles in Fig.~3).
+(e.g., star vs path in Fig.~2, cycle vs matching in Fig.~3, and barbell vs two
+triangles in Fig.~4).
+
+\paragraph{Red-node encoding (sketch).}
+The red-node view decomposes a graph into its block-cut tree and attaches a
+construction encoding to each 2-connected block. The red level marks the
+boundary between topology (how blocks connect) and construction (what each block
+is), producing a tree diagram that preserves structural semantics but is not
+intrinsically dense.
 
 \paragraph{Small $n=5$ example list.}
 Ordering the unlabeled graphs by canonical adjacency and listing the resulting
@@ -140,18 +166,18 @@ construction integers for $n=5$ gives:
     \caption{Barbell vs two disconnected triangles: same blocks, different topology.}
 \end{figure}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\linewidth]{matula-tree.svg}
-    \caption{A Matula tree diagram for a construction integer.}
-\end{figure}
-
 \section{Complexity and canonicalization}
 Canonical construction requires considering all $n!$ labelings in the worst
 case, matching the known hardness of graph canonicalization. The contribution is
 structural, not algorithmic: the ordering makes constructional complexity
 visible rather than hidden. For practical canonical labeling algorithms, see
 the nauty/traces line of work \cite{mckay2014}.
+
+\paragraph{Naive canonicalization algorithm.}
+Given a graph on $n$ vertices, enumerate all labelings, compute the construction
+integer for each labeling, and return the minimum. This brute-force procedure is
+feasible only for small $n$, but it makes the canonicalization requirement
+explicit.
 
 \section{Related work}
 Canonical adjacency encodings of unlabeled graphs appear in the literature as
@@ -163,6 +189,10 @@ graph list to those codes. Our work differs in the encoding semantics: the
 integer is derived from a construction history (mixed-radix sequence) and then
 decoded as a Matula tree, which supplies a compositional interpretation beyond
 canonical adjacency.
+\par
+For trees, the classical Prüfer code gives a bijection between labeled trees and
+integer sequences \cite{west2001}. The construction sequences here can be seen
+as a higher-level analog that applies to general graphs.
 
 \section{Discussion and open questions}
 We outline possible correlations between construction complexity and classical

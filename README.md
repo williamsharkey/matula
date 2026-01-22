@@ -23,3 +23,5 @@ pdflatex main.tex
 ```
 
 Note: Claude Code will compile the paper and can install `pdflatex` if needed.
+Figures are SVG; either convert them to PDF/PNG or compile with a LaTeX engine
+and configuration that supports SVG inclusion.
